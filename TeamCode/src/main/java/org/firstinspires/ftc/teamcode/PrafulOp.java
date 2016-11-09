@@ -18,10 +18,10 @@ public class PrafulOp extends OpMode {
     private DcMotor fL, fR, bL, bR;
     private DcMotor lift, intake, elevator, flywheel;
     private CRServo pushL, pushR;
-    private Servo flip, latch;
-    private boolean[] toggleStates = new boolean[2]; //ind 0 is flywheel, ind 1 is flip servo
+    private Servo flip, /*latch,*/ load;
+    private boolean[] toggleStates = new boolean[3]; //ind 0 is flywheel, ind 1 is flip servo, ind 2 is load servo
     private double flyPower = 0;
-    private final double flipStart = 0;
+    private double flipPos = 0, loadPos = 0;
 
     @Override
     public void init() {
@@ -36,7 +36,8 @@ public class PrafulOp extends OpMode {
         pushL = hardwareMap.crservo.get("pushL");
         pushR = hardwareMap.crservo.get("pushR");
         flip = hardwareMap.servo.get("flip");
-        latch = hardwareMap.servo.get("latch");
+        //latch = hardwareMap.servo.get("latch");
+        load = hardwareMap.servo.get("load");
 
         fL.setDirection(DcMotorSimple.Direction.FORWARD);
         bL.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -46,14 +47,17 @@ public class PrafulOp extends OpMode {
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         elevator.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
+        flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         pushL.setDirection(DcMotorSimple.Direction.FORWARD);
         pushR.setDirection(DcMotorSimple.Direction.FORWARD);
         flip.setDirection(Servo.Direction.FORWARD);
-        latch.setDirection(Servo.Direction.FORWARD);
+        //latch.setDirection(Servo.Direction.FORWARD);
+        load.setDirection(Servo.Direction.FORWARD);
 
-        flip.setPosition(flipStart);
-        latch.setPosition(0);
+        flip.setPosition(flipPos);
+        //latch.setPosition(0);
+        load.setPosition(loadPos);
 
     }
 
@@ -67,12 +71,12 @@ public class PrafulOp extends OpMode {
 
     public void checkGamepad1(){
         //5 and 7 for lift, up/down for buttons, 4 for toggle flywheel
-        if(gamepad1.left_bumper){
+  /*      if(gamepad1.left_bumper){
             lift.setPower(0.95);
         } else if(gamepad1.right_bumper) {
             lift.setPower(-0.95);
         } else lift.setPower(0);
-
+*/
         if(gamepad1.dpad_up){
             pushL.setPower(0.7);
             pushR.setPower(0.7);
@@ -85,16 +89,16 @@ public class PrafulOp extends OpMode {
         }
 
         if(gamepad1.y && !toggleStates[0]){
-            flyPower = flyPower == 0 ? 0.95 : 0;
+            flyPower = flyPower == 0 ? 0.7 : 0;
             flywheel.setPower(flyPower);
             toggleStates[0] = true;
         } else if(!gamepad1.y) toggleStates[0] = false;
 
-        if(gamepad1.start) latch.setPosition(1);
+        //if(gamepad1.start) latch.setPosition(1);
     }
 
     public void checkGamepad2(){
-        //up and down for elevator, 4 and 2 for lift, 1 for flip servo
+        //up and down for intake, 4 and 2 for elevator, 1 for flip servo
         if(gamepad2.dpad_up){
             intake.setPower(0.95);
         } else if(gamepad2.dpad_down){
@@ -108,9 +112,23 @@ public class PrafulOp extends OpMode {
         } else elevator.setPower(0);
 
         if(gamepad1.x && !toggleStates[1]){
-            flip.setPosition(flip.getPosition() == flipStart ? flipStart + 0.5 : flipStart);
+            flipPos = flipPos == 0 ? 0.5 : 0;
+            flip.setPosition(flipPos);
             toggleStates[1] = true;
         } else if(!gamepad1.x) toggleStates[1] = false;
+
+        if(gamepad1.b && !toggleStates[2]){
+            loadPos = loadPos == 0 ? 0.5 : 0;
+            load.setPosition(loadPos);
+            toggleStates[2] = true;
+        } else if(!gamepad1.b) toggleStates[2] = false;
+    }
+
+    public void telemetryUpdate(){
+        telemetry.clear();
+        telemetry.addData("Load Servo is on: ", loadPos == 0.5);
+        //telemetry.addData("")
+        telemetry.update();
     }
 
 
@@ -123,6 +141,8 @@ public class PrafulOp extends OpMode {
 
         checkGamepad1();
         checkGamepad2();
+
+        telemetryUpdate();
 
 
 
