@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "PrafulOp", group = "TeleOps")
 public class PrafulOp extends OpMode {
     private DcMotor fL, fR, bL, bR;
-    private DcMotor lift, intake, elevator, flywheel;
+    private DcMotor /*lift,*/ intake, elevator, flywheel;
     private CRServo pushL, pushR;
     private Servo flip, /*latch,*/ load;
     private boolean[] toggleStates = new boolean[3]; //ind 0 is flywheel, ind 1 is flip servo, ind 2 is load servo
@@ -29,7 +29,7 @@ public class PrafulOp extends OpMode {
         bL = hardwareMap.dcMotor.get("bL");
         fR = hardwareMap.dcMotor.get("fR");
         bR = hardwareMap.dcMotor.get("bR");
-        lift = hardwareMap.dcMotor.get("lift");
+        //lift = hardwareMap.dcMotor.get("lift");
         intake = hardwareMap.dcMotor.get("intake");
         elevator = hardwareMap.dcMotor.get("elevator");
         flywheel = hardwareMap.dcMotor.get("flywheel");
@@ -39,18 +39,18 @@ public class PrafulOp extends OpMode {
         //latch = hardwareMap.servo.get("latch");
         load = hardwareMap.servo.get("load");
 
-        fL.setDirection(DcMotorSimple.Direction.FORWARD);
-        bL.setDirection(DcMotorSimple.Direction.FORWARD);
+        fL.setDirection(DcMotorSimple.Direction.REVERSE);
+        bL.setDirection(DcMotorSimple.Direction.REVERSE);
         fR.setDirection(DcMotorSimple.Direction.FORWARD);
         bR.setDirection(DcMotorSimple.Direction.FORWARD);
-        lift.setDirection(DcMotorSimple.Direction.FORWARD);
+        //lift.setDirection(DcMotorSimple.Direction.FORWARD);
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         elevator.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         pushL.setDirection(DcMotorSimple.Direction.FORWARD);
-        pushR.setDirection(DcMotorSimple.Direction.FORWARD);
+        pushR.setDirection(DcMotorSimple.Direction.REVERSE);
         flip.setDirection(Servo.Direction.FORWARD);
         //latch.setDirection(Servo.Direction.FORWARD);
         load.setDirection(Servo.Direction.FORWARD);
@@ -63,8 +63,8 @@ public class PrafulOp extends OpMode {
 
     private double[] controllerYValues(Gamepad gamepad) {  // index 0 is left, index 1 is right
         double[] returnVals = new double[2];
-        returnVals[0] = Math.abs(gamepad.left_stick_y) > 0.05 ? gamepad1.left_stick_y : 0;
-        returnVals[1] = Math.abs(gamepad.right_stick_y) > 0.05 ? gamepad1.right_stick_y : 0;
+        returnVals[0] = Math.abs(gamepad.left_stick_y) > 0.025 ? gamepad1.left_stick_y : 0;
+        returnVals[1] = Math.abs(gamepad.right_stick_y) > 0.025 ? gamepad1.right_stick_y : 0;
 
         return returnVals;
     }
