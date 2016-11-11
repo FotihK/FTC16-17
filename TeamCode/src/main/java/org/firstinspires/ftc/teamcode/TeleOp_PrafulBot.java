@@ -13,8 +13,8 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Created by HP on 9/29/2016.
  */
 
-@TeleOp(name = "PrafulOp", group = "TeleOps")
-public class PrafulOp extends OpMode {
+@TeleOp(name = "PrafulBot", group = "TeleOp")
+public class TeleOp_PrafulBot extends OpMode {
     private DcMotor fL, fR, bL, bR;
     private DcMotor /*lift,*/ intake, elevator, flywheel;
     private CRServo pushL, pushR;
