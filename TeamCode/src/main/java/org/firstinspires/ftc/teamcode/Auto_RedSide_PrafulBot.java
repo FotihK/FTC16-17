@@ -20,22 +20,22 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
     private double flipPos = 0, loadPos = 0;
     private LightSensor light_ground, light_beacon;
 
-    public void stopDrive(){
-        fR.setPower(0);                                     //Stop
+    public void stopDrive(){        //Method to stop drive motors
+        fR.setPower(0);
         bR.setPower(0);
         fL.setPower(0);
         bL.setPower(0);
         sleep(500);
     }
 
-    public void readyEncoders(){
+    public void readyEncoders(){    //Method to reset and initialize drive train encoders
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         bL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         bR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    public void stopEncoders(){
+    public void stopEncoders(){     //Method to reset and stop using drive train encoders
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -73,7 +73,6 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         bR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
 
         pushL.setDirection(DcMotorSimple.Direction.FORWARD);
         pushR.setDirection(DcMotorSimple.Direction.REVERSE);
