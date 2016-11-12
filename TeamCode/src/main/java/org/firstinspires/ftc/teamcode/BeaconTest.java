@@ -13,7 +13,7 @@ public class BeaconTest extends OpMode {
     private LightSensor light;
     @Override
     public void init() {
-        light = hardwareMap.lightSensor.get("color");
+        light = hardwareMap.lightSensor.get("light_beacon");
     }
 
     @Override
