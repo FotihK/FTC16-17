@@ -89,9 +89,9 @@ public class TeleOp_PrafulBot extends OpMode {
             pushR.setPower(0);
         }
 
-        if(gamepad2.dpad_up){
+        if(gamepad1.dpad_up){
             intake.setPower(0.95);
-        } else if(gamepad2.dpad_down){
+        } else if(gamepad1.dpad_down){
             intake.setPower(-0.95);
         } else intake.setPower(0);
 
@@ -108,23 +108,23 @@ public class TeleOp_PrafulBot extends OpMode {
         //up and down for intake, 4 and 2 for elevator, 1 for flip servo
 
 
-        if(gamepad2.y){
+        if(gamepad2.dpad_up){
             elevator.setPower(0.95);
-        } else if(gamepad2.a){
+        } else if(gamepad2.dpad_down){
             elevator.setPower(-0.95);
         } else elevator.setPower(0);
 
-        if(gamepad1.x && !toggleStates[1]){
+        if(gamepad2.b && !toggleStates[1]){
             flipPos = flipPos == 0 ? 0.5 : 0;
             flip.setPosition(flipPos);
             toggleStates[1] = true;
-        } else if(!gamepad1.x) toggleStates[1] = false;
+        } else if(!gamepad2.b) toggleStates[1] = false;
 
-        if(gamepad1.b && !toggleStates[2]){
+        if(gamepad2.x && !toggleStates[2]){
             loadPos = loadPos == 0 ? 0.5 : 0;
             load.setPosition(loadPos);
             toggleStates[2] = true;
-        } else if(!gamepad1.b) toggleStates[2] = false;
+        } else if(!gamepad2.x) toggleStates[2] = false;
     }
 
     public void telemetryUpdate(){

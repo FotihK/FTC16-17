@@ -30,10 +30,10 @@ public class EncoderTest extends LinearOpMode {
         bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        bL.setPower(0.4);
-        bR.setPower(0.4);
-        fL.setPower(0.4);
-        fR.setPower(0.4);
+        bL.setPower(0.5);
+        bR.setPower(0.5);
+        fL.setPower(0.5);
+        fR.setPower(0.5);
 
         sleep(1000);
 
@@ -57,10 +57,10 @@ public class EncoderTest extends LinearOpMode {
         bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        bL.setPower(-0.4);
-        bR.setPower(-0.4);
-        fL.setPower(-0.4);
-        fR.setPower(-0.4);
+        bL.setPower(-0.5);
+        bR.setPower(-0.5);
+        fL.setPower(-0.5);
+        fR.setPower(-0.5);
 
         sleep(2000);
 
