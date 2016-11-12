@@ -48,7 +48,6 @@ public class EncoderTest extends LinearOpMode {
 
         sleep(8000);
 
-
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
