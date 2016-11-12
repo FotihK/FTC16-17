@@ -19,6 +19,7 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
     private Servo flip, /*latch,*/ load;
     private double flipPos = 0, loadPos = 0;
     private LightSensor light_ground, light_beacon;
+    private int waitInt = 2500;
 
     public void stopDrive(){        //Method to stop drive motors
         fR.setPower(0);
@@ -30,16 +31,27 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
 
     public void readyEncoders(){    //Method to reset and initialize drive train encoders
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        idle();
+
+        bL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         bR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void stopEncoders(){     //Method to reset and stop using drive train encoders
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        idle();
+
+        bL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        bR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void telemetryMessage(String message){
+        telemetry.addLine(message);
+        telemetry.update();
     }
 
     public void initialize(){
@@ -69,10 +81,11 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
         //flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //UNCOMMENT IF USING ANDYMARK
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //COMMENT IF USING ANDYMARK
-        bL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        bR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        stopEncoders();
+        bL.setMaxSpeed(2800);
+        bR.setMaxSpeed(2800);
+        //flywheel.setMaxSpeed(2800);                       //UNCOMMENT IF USING ANDYMARK
+
 
         pushL.setDirection(DcMotorSimple.Direction.FORWARD);
         pushR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -92,48 +105,96 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         initialize();
+
         waitForStart();
 
-        while(light_ground.getRawLightDetected() < 1.8){    //Runs until white beacon line is seen
-            fL.setPower(-0.2);
-            bL.setPower(-0.2);
-            bR.setPower(-0.2);
-            fR.setPower(-0.2);
+
+
+        telemetryMessage("Starting to find first beacon line!");
+
+        fL.setPower(-0.4);      //RAMP UP FOR EASY START
+        bL.setPower(-0.4);
+        bR.setPower(-0.4);
+        fR.setPower(-0.4);
+
+        sleep(125);
+
+        fL.setPower(-0.2);      //SWITCH TO ACTUAL POWER
+        bL.setPower(-0.2);
+        bR.setPower(-0.2);
+        fR.setPower(-0.2);
+
+        while(light_ground.getRawLightDetected() < 1.8 && opModeIsActive()){    //Runs until white beacon line is seen
+            idle();
         }
 
         stopDrive();
 
-        sleep(5000);
+        telemetryMessage("Found the first beacon line!");
 
-        //readyEncoders();            //Turns towards beacon
-        //bL.setTargetPosition(560); //CHANGE THIS FOR AMOUNT OF SWING TURN
-        //while(bL.isBusy()) {
-        stopEncoders();
-            bL.setPower(-1);
-            fL.setPower(-1);
-            bR.setPower(1);
-            fR.setPower(1);
-        //}
 
-        sleep(500);
+        sleep(waitInt);
+
+
+        telemetryMessage("Turning towards beacon!");
+
+        //THIS TYPE OF TURNING USES ENCODERS
+        /*
+        readyEncoders();            //Turns towards beacon
+        bL.setTargetPosition(560); //CHANGE THIS FOR AMOUNT OF POINT TURN
+
+        bL.setPower(-1);
+        fL.setPower(-1);
+        bR.setPower(1);
+        fR.setPower(1);
+
+        while(bL.isBusy()) {
+            idle();
+        }
+
+        stopDrive();
+        */
+
+        //THIS TYPE OF TURNING USING LIGHT SENSOR TO REALIGN WITH LINE
+        bL.setPower(-1);
+        bR.setPower(1);
+        fL.setPower(-1);
+        fR.setPower(1);
+
+        while(light_ground.getRawLightDetected() < 1.8 && opModeIsActive()){
+            idle();
+        }
+
         stopDrive();
 
-        sleep(5000);
+        telemetryMessage("Turned towards beacon!");
+
+
+        sleep(waitInt);
+
+
+        telemetryMessage("Moving towards beacon!");
 
         readyEncoders();            //Inches towards beacon
-        bL.setTargetPosition(140); //CHANGE THESE FOR AMOUNT OF MOVEMENT TOWARDS BEACON
-        bR.setTargetPosition(140);
+
+        fL.setPower(-0.2);
+        bL.setPower(-0.2);
+        bR.setPower(-0.2);
+        fR.setPower(-0.2);
+
         while(bL.isBusy() || bR.isBusy()){
-            fL.setPower(-0.2);
-            bL.setPower(-0.2);
-            bR.setPower(-0.2);
-            fR.setPower(-0.2);
+            idle();
         }
 
         stopDrive();
 
-        sleep(5000);
+        telemetryMessage("Moved towards beacon!");
 
+
+        sleep(waitInt);
+
+
+        telemetryMessage("Checking light and pushing button!");
         if(light_beacon.getRawLightDetected() < 2.05){  //Checks beacon and extends corresponding pusher
             pushL.setPower(0.5);
             sleep(1000);
@@ -143,8 +204,9 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
             sleep(1000);
             pushR.setPower(0);
         }
+        telemetryMessage("Checked light and pushed button!");
 
-        sleep(5000);
+        sleep(waitInt);
 
         readyEncoders();            //Inches away from beacon
         bL.setTargetPosition(280); //CHANGE THESE FOR MOVEMENT AWAY FROM BEACON OR IF MOVEMENT IS NOT NEEDED
@@ -158,7 +220,7 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
 
         stopDrive();
 
-        sleep(5000);
+        sleep(waitInt);
                /*                     //Shoot pre-loaded particles
         flywheel.setPower(0.95); //SET POWER TO 0.75 IF USING ANDYMARK OTHERWISE SET TO 0.95
         sleep(1500);
@@ -188,7 +250,7 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         stopDrive();
         stopEncoders();
 
-        sleep(5000);
+        sleep(waitInt);
 
         bL.setPower(-0.3); //Moves towards beacon 2 manually to ensure sensor is not on beacon 1's line
         fL.setPower(-0.3);
@@ -196,7 +258,7 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         fR.setPower(-0.3);
         sleep(500);
         stopDrive();
-        sleep(5000);
+        sleep(waitInt);
 
         while(light_ground.getRawLightDetected() < 1.8){    //Runs until white beacon 2 line is seen
             fL.setPower(-0.7);
