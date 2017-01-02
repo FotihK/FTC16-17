@@ -1,15 +1,21 @@
 package org.firstinspires.ftc.teamcode.FTC_RED;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Helper.AutonomousTemp;
 
 /**
  * Created by fotih on 12/9/2016.
  */
-@Autonomous(name = "Red",group = "Auton")
-public class AutonomousRED extends AutonomousTemp {
-
+@Autonomous(name = "Blue",group = "Auton")
+public class AutonomousBLUE extends AutonomousTemp {
+    
     public void telemetry(){
         telemetry.addData("Beacon val: ", light_beacon.getRawLightDetected());
         telemetry.update();
@@ -20,23 +26,20 @@ public class AutonomousRED extends AutonomousTemp {
         initialize();
         waitForStart();
         sleep(1000);
-        driveTrain.straight(0.4);
-        while((light_ground.getRawLightDetected() < 2) && opModeIsActive()){    //Runs until white beacon line is seen
+        driveTrain.straight(0.5);
+        ElapsedTime time = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+        while((light_ground.getRawLightDetected() < 1.8 || time.time() < 3.5) && opModeIsActive()){    //Runs until white beacon line is seen
             idle();
         }
-        sleep(250);
         driveTrain.stop();
         sleep(500);
-        driveTrain.turn("left", 0.7);
-        while((light_ground.getRawLightDetected() < 2) && opModeIsActive()){    //Runs until white beacon line is seen
-            idle();
-        }
-        //sleep(1000);
+        driveTrain.turn("right", 0.2);
+        sleep(150);
         driveTrain.stop();
         sleep(500);
         telemetry();
         //stop();
-        if(light_beacon.getRawLightDetected() < 2.05){
+        if(light_beacon.getRawLightDetected() > 2.05){
             pushL.setPosition(0.04);
             pushR.setPosition(0.04);
         } else {
@@ -53,7 +56,7 @@ public class AutonomousRED extends AutonomousTemp {
         sleep(1000);
         driveTrain.stop();
         sleep(500);
-        autoShoot();
+        //autoShoot();
 
     }
 }
