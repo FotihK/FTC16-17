@@ -21,7 +21,7 @@ public class MainTeleOp extends OpMode {
     private DcMotor intake, belt, flywheelL, flywheelR;
     protected DriveTrain driveTrain;
     private Servo pushL, pushR;
-    private boolean[] toggleStates = new boolean[5];    //0th is flywheel, 1st is intake, 2nd is belt, 3 is pushL, 4 is pushR
+    private boolean[] toggleStates = new boolean[4];    //0th is intake, 1st is belt, 2nd is pushL, 3rd is pushR
     private boolean[] movingStates = new boolean[2];    //0th is intake, 1st is belt
     protected boolean[] isOn = new boolean[3];            //0th is flywheel, 1st is intake, 2nd is belt
     private double[] servoStartPositions = {0.95, 0.15};    //Left, Right
@@ -63,7 +63,6 @@ public class MainTeleOp extends OpMode {
         }
         if(flyPower >= 0.95) {
             flyPower = 0.95;
-            toggleStates[0] = true;
             isOn[0] = true;
         }
         flywheelL.setPower(flyPower);
@@ -77,9 +76,8 @@ public class MainTeleOp extends OpMode {
             flywheelR.setPower(flyPower);
             rampTimer.reset();
         }
-        if(flyPower <= 0) {
+        else if(flyPower <= 0) {
             flyPower = 0;
-            toggleStates[0] = true;
             isOn[0] = false;
         }
         flywheelL.setPower(flyPower);
@@ -88,7 +86,7 @@ public class MainTeleOp extends OpMode {
     }
 
     protected void checkGamepad1(){                       //Buttons for gamepad 1
-        if(gamepad1.dpad_up && !toggleStates[1]){       //Up toggle for intake
+        if(gamepad1.dpad_up && !toggleStates[0]){       //Up toggle for intake
             if(movingStates[0]){
                 intake.setPower(0);
                 movingStates[0] = false;
@@ -99,9 +97,9 @@ public class MainTeleOp extends OpMode {
                 intake.setPower(0.85);
                 isOn[1] = true;
             }
-            toggleStates[1] = true;
+            toggleStates[0] = true;
         }
-        else if(gamepad1.dpad_down && !toggleStates[1]){    //Down toggle for intake
+        else if(gamepad1.dpad_down && !toggleStates[0]){    //Down toggle for intake
             if(movingStates[0]){
                 intake.setPower(0);
                 movingStates[0] = false;
@@ -112,23 +110,23 @@ public class MainTeleOp extends OpMode {
                 intake.setPower(-0.85);
                 isOn[1] = true;
             }
-            toggleStates[1] = true;
+            toggleStates[0] = true;
         }
-        else if(!gamepad1.dpad_down && !gamepad1.dpad_up) toggleStates[1] = false;
+        else if(!gamepad1.dpad_down && !gamepad1.dpad_up) toggleStates[0] = false;
 
-        if(gamepad1.left_bumper && !toggleStates[3]){   //Toggle for pushL
+        if(gamepad1.left_bumper && !toggleStates[2]){   //Toggle for pushL
             pushL.setPosition(pushL.getPosition() == servoStartPositions[0] ? servoEndPositions[0] : servoStartPositions[0]);
-            toggleStates[3] = true;
-        } else if(!gamepad1.left_bumper) toggleStates[3] = false;
+            toggleStates[2] = true;
+        } else if(!gamepad1.left_bumper) toggleStates[2] = false;
 
-        if(gamepad1.right_bumper && !toggleStates[4]){  //Toggle for pushR
+        if(gamepad1.right_bumper && !toggleStates[3]){  //Toggle for pushR
             pushR.setPosition(pushR.getPosition() == servoStartPositions[1] ? servoEndPositions[1] : servoStartPositions[1]);
-            toggleStates[4] = true;
-        } else if(!gamepad1.right_bumper) toggleStates[4] = false;
+            toggleStates[3] = true;
+        } else if(!gamepad1.right_bumper) toggleStates[3] = false;
     }
 
     protected void checkGamepad2(){                   //Buttons for gamepad 2
-        if(gamepad2.dpad_up && !toggleStates[2]){   //Up toggle for belt
+        if(gamepad2.dpad_up && !toggleStates[1]){   //Up toggle for belt
             if(movingStates[1]){
                 belt.setPower(0);
                 movingStates[1] = false;
@@ -139,9 +137,9 @@ public class MainTeleOp extends OpMode {
                 belt.setPower(0.85);
                 isOn[2] = true;
             }
-            toggleStates[2] = true;
+            toggleStates[1] = true;
         }
-        else if(gamepad2.dpad_down && !toggleStates[2]){    //Down toggle for belt
+        else if(gamepad2.dpad_down && !toggleStates[1]){    //Down toggle for belt
             if(movingStates[1]){
                 belt.setPower(0);
                 movingStates[1] = false;
@@ -152,9 +150,9 @@ public class MainTeleOp extends OpMode {
                 belt.setPower(-0.85);
                 isOn[2] = true;
             }
-            toggleStates[2] = true;
+            toggleStates[1] = true;
         }
-        else if(!gamepad2.dpad_down && !gamepad2.dpad_up) toggleStates[2] = false;
+        else if(!gamepad2.dpad_down && !gamepad2.dpad_up) toggleStates[1] = false;
 
         if(gamepad2.y){
             rampFlywheelUp();
