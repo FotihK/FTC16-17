@@ -7,10 +7,10 @@ import org.firstinspires.ftc.teamcode.Helper.AutonomousTemp;
 /**
  * Created by fotih on 12/9/2016.
  */
-@Autonomous(name = "Red",group = "Auton")
+@Autonomous(name = "Red", group = "Auton")
 public class AutonomousRED extends AutonomousTemp {
 
-    public void telemetry(){
+    public void telemetry() {
         telemetry.addData("Beacon val: ", light_beacon.getRawLightDetected());
         telemetry.update();
     }
@@ -20,15 +20,15 @@ public class AutonomousRED extends AutonomousTemp {
         initialize();
         waitForStart();
         sleep(1000);
-        driveTrain.straight(0.4);
-        while((light_ground.getRawLightDetected() < 2) && opModeIsActive()){    //Runs until white beacon line is seen
+        driveTrain.setPower(0.4);
+        while ((light_ground.getRawLightDetected() < 2) && opModeIsActive()) {    //Runs until white beacon line is seen
             idle();
         }
         sleep(250);
         driveTrain.stop();
         sleep(500);
         driveTrain.turn("left", 0.7);
-        while((light_ground.getRawLightDetected() < 2) && opModeIsActive()){    //Runs until white beacon line is seen
+        while ((light_ground.getRawLightDetected() < 2) && opModeIsActive()) {    //Runs until white beacon line is seen
             idle();
         }
         //sleep(1000);
@@ -36,7 +36,7 @@ public class AutonomousRED extends AutonomousTemp {
         sleep(500);
         telemetry();
         //stop();
-        if(light_beacon.getRawLightDetected() < 2.05){
+        if (light_beacon.getRawLightDetected() < 2.05) {
             pushL.setPosition(0.04);
             pushR.setPosition(0.04);
         } else {
@@ -45,11 +45,11 @@ public class AutonomousRED extends AutonomousTemp {
         }
         telemetry();
         sleep(250);
-        driveTrain.straight(0.3);
+        driveTrain.setPower(0.3);
         sleep(250);
         driveTrain.stop();
         sleep(500);
-        driveTrain.straight(-0.4);
+        driveTrain.setPower(-0.4);
         sleep(1000);
         driveTrain.stop();
         sleep(500);
