@@ -15,8 +15,8 @@ public class DriveTrain {
     public DriveTrain(DcMotor left, DcMotor right) {
         this.left = left;
         this.right = right;
-        left.setDirection(DcMotorSimple.Direction.FORWARD);
-        right.setDirection(DcMotorSimple.Direction.REVERSE);
+        left.setDirection(DcMotorSimple.Direction.REVERSE);
+        right.setDirection(DcMotorSimple.Direction.FORWARD);
         left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
@@ -97,8 +97,8 @@ public class DriveTrain {
      * @param gp Gamepad used to drive the DriveTrain
      */
     public void tankDrive(Gamepad gp) {
-        left.setPower(getGamepadYValues(gp)[0]);
-        right.setPower(getGamepadYValues(gp)[1]);
+        left.setPower(getGamepadYValues(gp)[1]);
+        right.setPower(getGamepadYValues(gp)[0]);
     }
 
     /**

@@ -27,24 +27,22 @@ public class ServoTest extends LinearOpMode {
         waitForStart();
         while(opModeIsActive()) {
             if (gamepad1.a) {
-                pushL.setPosition(Range.clip((pushL.getPosition() + 0.05), 0, 1));
+                pushL.setPosition(Range.clip((pushL.getPosition() + 0.001), 0, 1));
             }
             if (gamepad1.b) {
-                pushL.setPosition(Range.clip((pushL.getPosition() - 0.05), 0, 1));
+                pushL.setPosition(Range.clip((pushL.getPosition() - 0.001), 0, 1));
             }
 
             if (gamepad1.x) {
-                pushR.setPosition(Range.clip((pushR.getPosition() + 0.05), 0, 1));
+                pushR.setPosition(Range.clip((pushR.getPosition() + 0.001), 0, 1));
             }
             if (gamepad1.y) {
-                pushR.setPosition(Range.clip((pushR.getPosition() - 0.05), 0, 1));
+                pushR.setPosition(Range.clip((pushR.getPosition() - 0.001), 0, 1));
             }
 
             telemetry.addData("L:", pushL.getPosition());
             telemetry.addData("R:", pushR.getPosition());
             telemetry.update();
-
-            while(gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y) sleep(1);
         }
     }
 }
