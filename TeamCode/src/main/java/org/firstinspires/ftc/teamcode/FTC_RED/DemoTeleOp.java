@@ -8,16 +8,17 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Helper.DriveTrain;
+import org.firstinspires.ftc.teamcode.Helper.TeleOpTemp;
 
 
 /**
  * Created by HP on 11/30/2016.
  */
 @TeleOp(name = "DemoOp", group = "OpModes")
-public class DemoTeleOp extends MainTeleOp {
+public class DemoTeleOp extends TeleOpTemp {
 
     @Override
-    protected void telemetry() {
+    public void telemetry() {
         telemetry.addData("Flywheel is ", (isOn[0] ? "on. " : "off."));
         telemetry.addData("Intake is ", (isOn[1] ? "on. " : "off."));
         telemetry.addData("Belt is ", (isOn[2] ? "on. " : "off."));

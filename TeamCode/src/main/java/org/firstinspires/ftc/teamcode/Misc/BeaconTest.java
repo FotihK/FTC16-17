@@ -11,21 +11,23 @@ import com.qualcomm.robotcore.hardware.LightSensor;
 @TeleOp(name="BeaconTest",group = "Tests")
 public class BeaconTest extends OpMode {
     private LightSensor light;
-    private LightSensor light2;
+    private boolean led, toggle;
     @Override
     public void init() {
         light = hardwareMap.lightSensor.get("light_beacon");
-        light2 = hardwareMap.lightSensor.get("light_ground");
         light.enableLed(false);
-        light2.enableLed(true);
     }
 
     @Override
     public void loop() {
+        if(gamepad1.y & !toggle){
+            led = !led;
+            toggle = true;
+        } else if(!gamepad1.y) toggle = false;
+
+        light.enableLed(led);
         telemetry.addData("Light Value: ", light.getLightDetected());
         telemetry.addData("Raw Light: ", light.getRawLightDetected());
-        telemetry.addData("Light2 Value: ", light2.getLightDetected());
-        telemetry.addData("Raw2 Light: ", light2.getRawLightDetected());
         telemetry.update();
     }
 }
