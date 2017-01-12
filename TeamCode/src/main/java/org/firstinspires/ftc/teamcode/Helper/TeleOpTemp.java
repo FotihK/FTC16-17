@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 public abstract class TeleOpTemp extends OpMode {
-    public float right_trigger;
     private DcMotor intake, belt;
     protected DriveTrain driveTrain;
     private DriveTrain flywheel;
@@ -129,8 +128,6 @@ public abstract class TeleOpTemp extends OpMode {
             }
             toggleStates[0] = true;
         } else if (!gamepad1.dpad_down && !gamepad1.dpad_up) toggleStates[0] = false;
-
-
 
 
         if (gamepad1.left_bumper && !toggleStates[2]) {   //Toggle for pushL

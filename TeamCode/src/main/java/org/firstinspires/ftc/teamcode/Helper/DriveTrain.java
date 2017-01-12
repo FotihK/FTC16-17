@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Helper;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * The DriveTrain class provides a more compact way of controlling a pair of motors that are to work
@@ -15,8 +16,8 @@ public class DriveTrain {
     public DriveTrain(DcMotor left, DcMotor right) {
         this.left = left;
         this.right = right;
-        left.setDirection(DcMotorSimple.Direction.REVERSE);
-        right.setDirection(DcMotorSimple.Direction.FORWARD);
+        left.setDirection(DcMotorSimple.Direction.FORWARD);
+        right.setDirection(DcMotorSimple.Direction.REVERSE);
         left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
@@ -28,6 +29,7 @@ public class DriveTrain {
      * @param dir   the direction which will be set
      * @see DcMotor#setDirection(DcMotorSimple.Direction)
      */
+    @SuppressWarnings("WeakerAccess")
     public void setDirection(String motor, DcMotorSimple.Direction dir) {
         switch (motor.toLowerCase()) {
             case "left":
@@ -50,6 +52,7 @@ public class DriveTrain {
      * @param mode  the mode which will be set
      * @see DcMotor#setMode(DcMotor.RunMode)
      */
+    @SuppressWarnings("WeakerAccess")
     public void setMode(String motor, DcMotor.RunMode mode) {
         switch (motor.toLowerCase()) {
             case "left":
@@ -97,8 +100,8 @@ public class DriveTrain {
      * @param gp Gamepad used to drive the DriveTrain
      */
     public void tankDrive(Gamepad gp) {
-        left.setPower(getGamepadYValues(gp)[1]);
-        right.setPower(getGamepadYValues(gp)[0]);
+        left.setPower(getGamepadYValues(gp)[0]);
+        right.setPower(getGamepadYValues(gp)[1]);
     }
 
     /**
@@ -117,6 +120,7 @@ public class DriveTrain {
      * @param pow power
      */
     public void setPower(double pow) {
+        pow = Range.clip(pow, -1, 1);
         left.setPower(pow);
         right.setPower(pow);
     }
@@ -136,6 +140,7 @@ public class DriveTrain {
      * @param pow power
      */
     public void turn(String dir, double pow) {
+        pow = Range.clip(pow, -1, 1);
         switch (dir.toLowerCase()) {
             case "l":
                 left.setPower(-pow);
