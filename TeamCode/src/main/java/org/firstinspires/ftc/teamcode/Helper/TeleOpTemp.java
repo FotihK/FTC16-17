@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 public abstract class TeleOpTemp extends OpMode {
+    public float right_trigger;
     private DcMotor intake, belt;
     protected DriveTrain driveTrain;
     private DriveTrain flywheel;
@@ -21,8 +22,8 @@ public abstract class TeleOpTemp extends OpMode {
     private boolean[] toggleStates = new boolean[5];    //0th is intake, 1st is belt, 2nd is pushL, 3rd is pushR, 4th is sensor info
     private boolean[] movingStates = new boolean[2];    //0th is intake, 1st is belt
     protected boolean[] isOn = new boolean[4];            //0th is flywheel, 1st is intake, 2nd is belt, 3rd is sensor info
-    private double[] servoStartPositions = {0.95, 0.15};    //Left, Right
-    private double[] servoEndPositions = {0.53, 0.57};      //Left, Right
+    private double[] servoStartPositions = {0.97, 0.00};    //Left, Right
+    private double[] servoEndPositions = {0.55, 0.35};      //Left, Right
     protected double flyPower = 0;
     private ElapsedTime rampTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
@@ -55,13 +56,13 @@ public abstract class TeleOpTemp extends OpMode {
     }
 
     private void rampFlywheelUp() {
-        if (flyPower <= 0.95 && rampTimer.time() > 350) {
-            flyPower += 0.065;
+        if (flyPower <= 1.00 && rampTimer.time() > 350) {
+            flyPower += 0.25;
             flywheel.setPower(flyPower);
             rampTimer.reset();
         }
-        if (flyPower >= 0.95) {
-            flyPower = 0.95;
+        if (flyPower >= 1.00) {
+            flyPower = 1.00;
             isOn[0] = true;
         }
         flywheel.setPower(flyPower);
@@ -69,7 +70,32 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDown() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower -= 0.05;
+            flyPower -= 0.25;
+            flywheel.setPower(flyPower);
+            rampTimer.reset();
+        } else if (flyPower <= 0) {
+            flyPower = 0;
+            isOn[0] = false;
+        }
+        flywheel.setPower(flyPower);
+    }
+
+    private void rampFlywheelUpSlow() {
+        if (flyPower <= 1.00 && rampTimer.time() > 350) {
+            flyPower += 0.125;
+            flywheel.setPower(flyPower);
+            rampTimer.reset();
+        }
+        if (flyPower >= 1.00) {
+            flyPower = 1.00;
+            isOn[0] = true;
+        }
+        flywheel.setPower(flyPower);
+    }
+
+    private void rampFlywheelDownSlow() {
+        if (flyPower > 0 && rampTimer.time() > 450) {
+            flyPower -= 0.125;
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {
@@ -87,7 +113,7 @@ public abstract class TeleOpTemp extends OpMode {
                 isOn[1] = false;
             } else {
                 movingStates[0] = true;
-                intake.setPower(0.85);
+                intake.setPower(1.00);
                 isOn[1] = true;
             }
             toggleStates[0] = true;
@@ -98,11 +124,14 @@ public abstract class TeleOpTemp extends OpMode {
                 isOn[1] = false;
             } else {
                 movingStates[0] = true;
-                intake.setPower(-0.85);
+                intake.setPower(-1.00);
                 isOn[1] = true;
             }
             toggleStates[0] = true;
         } else if (!gamepad1.dpad_down && !gamepad1.dpad_up) toggleStates[0] = false;
+
+
+
 
         if (gamepad1.left_bumper && !toggleStates[2]) {   //Toggle for pushL
             pushL.setPosition(pushL.getPosition() == servoStartPositions[0] ? servoEndPositions[0] : servoStartPositions[0]);
@@ -130,7 +159,7 @@ public abstract class TeleOpTemp extends OpMode {
                 isOn[2] = false;
             } else {
                 movingStates[1] = true;
-                belt.setPower(0.85);
+                belt.setPower(1.00);
                 isOn[2] = true;
             }
             toggleStates[1] = true;
@@ -141,20 +170,27 @@ public abstract class TeleOpTemp extends OpMode {
                 isOn[2] = false;
             } else {
                 movingStates[1] = true;
-                belt.setPower(-0.85);
+                belt.setPower(-1.00);
                 isOn[2] = true;
             }
             toggleStates[1] = true;
         } else if (!gamepad2.dpad_down && !gamepad2.dpad_up) toggleStates[1] = false;
 
-        if (gamepad2.y) {
+        if (gamepad2.y) {       //y is 3
             rampFlywheelUp();
         }
 
-        if (gamepad2.b) {
+        if (gamepad2.a) {       //a is 2
             rampFlywheelDown();
         }
 
+        if (gamepad2.b) {       //b is 4
+            rampFlywheelUpSlow();
+        }
+
+        if (gamepad2.x) {       //x is 1
+            rampFlywheelDownSlow();
+        }
     }
 
     public abstract void telemetry();
