@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Helper;
+package org.firstinspires.ftc.teamcode.FTC_RED.Helper;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -142,7 +142,7 @@ public class DriveTrain {
     public void turn(String dir, double pow) {
         pow = Range.clip(pow, -1, 1);
         switch (dir.toLowerCase()) {
-            case "l":
+            case "left":
                 left.setPower(-pow);
                 right.setPower(pow);
                 break;

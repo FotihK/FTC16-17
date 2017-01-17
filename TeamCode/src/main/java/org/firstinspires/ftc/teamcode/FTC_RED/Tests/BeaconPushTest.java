@@ -1,15 +1,12 @@
-package org.firstinspires.ftc.teamcode.Misc;
+package org.firstinspires.ftc.teamcode.FTC_RED.Tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Helper.DriveTrain;
+import org.firstinspires.ftc.teamcode.FTC_RED.Helper.DriveTrain;
 
 /**
  * Created by HP on 9/29/2016.
@@ -23,7 +20,6 @@ public class BeaconPushTest extends LinearOpMode {
     private double[] servoEndPositions = {0.55, 0.35};      //Left, Right
     private ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private int count = 0;
-    private boolean k = false;
 
     public void initialize() {
         driveTrain = new DriveTrain(hardwareMap.dcMotor.get("left"), hardwareMap.dcMotor.get("right"));

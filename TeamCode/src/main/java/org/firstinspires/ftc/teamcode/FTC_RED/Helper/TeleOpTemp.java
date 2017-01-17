@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode.Helper;
+package org.firstinspires.ftc.teamcode.FTC_RED.Helper;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -17,7 +16,6 @@ public abstract class TeleOpTemp extends OpMode {
     protected DriveTrain driveTrain;
     private DriveTrain flywheel;
     private Servo pushL, pushR;
-    protected LightSensor light_beacon, light_ground;
     private boolean[] toggleStates = new boolean[5];    //0th is intake, 1st is belt, 2nd is pushL, 3rd is pushR, 4th is sensor info
     private boolean[] movingStates = new boolean[2];    //0th is intake, 1st is belt
     protected boolean[] isOn = new boolean[4];            //0th is flywheel, 1st is intake, 2nd is belt, 3rd is sensor info
@@ -43,11 +41,6 @@ public abstract class TeleOpTemp extends OpMode {
         pushR.setDirection(Servo.Direction.FORWARD);
 
         flywheel.setMode("both", DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        light_beacon = hardwareMap.lightSensor.get("light_beacon");
-        light_ground = hardwareMap.lightSensor.get("light_ground");
-        light_ground.enableLed(false);
-        light_beacon.enableLed(false);
 
         pushL.setPosition(servoStartPositions[0]);
         pushR.setPosition(servoStartPositions[1]);
@@ -138,13 +131,7 @@ public abstract class TeleOpTemp extends OpMode {
         if (gamepad1.right_bumper && !toggleStates[3]) {  //Toggle for pushR
             pushR.setPosition(pushR.getPosition() == servoStartPositions[1] ? servoEndPositions[1] : servoStartPositions[1]);
             toggleStates[3] = true;
-        } else if (!gamepad1.right_bumper) toggleStates[3] = false;
-
-        if (gamepad1.start && !toggleStates[4]) {
-            isOn[3] = !isOn[3];
-            light_ground.enableLed(isOn[3]);
-            toggleStates[4] = true;
-        } else if (!gamepad1.start) toggleStates[4] = false;
+    } else if (!gamepad1.right_bumper) toggleStates[3] = false;
 
     }
 
