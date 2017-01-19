@@ -7,36 +7,29 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.FTC_RED.Helper.DriveTrain;
 
 /**
  * Created by Siva on 11/9/2016.
  */
 @Autonomous(name="RedSide-PrafulBot", group="Autonomous")
 public class Auto_RedSide_PrafulBot extends LinearOpMode {
-    private DcMotor fL, fR, bL, bR;
-    private DriveTrain front, back;
-    private DcMotor intake, elevator, flywheel;
+    private DriveTrain driveTrain;
+    private DcMotor elevator, flywheel;
     private CRServo pushL, pushR;
-    private Servo flip, load;
-    private double flipPos = 0, loadPos = 0;
+    private Servo flip;
+    private Servo load;
+    private double flyPower = 0;
     private LightSensor light_ground, light_beacon;
-
-    private void stopDrive() {        //Method to stop drive motors
-        fR.setPower(0);
-        bR.setPower(0);
-        fL.setPower(0);
-        bL.setPower(0);
-        sleep(150);
-    }
+    private final double BEACON_THRESHOLD = 1.875;            //Less than for blue, greater than for red
+    private final double LINE_THRESHOLD = 1.8;
+    int alliance = 1;                   //1 for red, -1 for blue
 
     public void initialize(){
-        fL = hardwareMap.dcMotor.get("fL");
-        bL = hardwareMap.dcMotor.get("bL");
-        fR = hardwareMap.dcMotor.get("fR");
-        bR = hardwareMap.dcMotor.get("bR");
-        intake = hardwareMap.dcMotor.get("intake");
+        driveTrain = new DriveTrain(hardwareMap.dcMotor.get("fL"), hardwareMap.dcMotor.get("fR"), hardwareMap.dcMotor.get("bL"),
+                hardwareMap.dcMotor.get("bR"));
+
         elevator = hardwareMap.dcMotor.get("elevator");
         flywheel = hardwareMap.dcMotor.get("flywheel");
         pushL = hardwareMap.crservo.get("pushL");
@@ -46,67 +39,143 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         light_ground = hardwareMap.lightSensor.get("light_ground");
         light_beacon = hardwareMap.lightSensor.get("light_beacon");
 
-        fL.setDirection(DcMotorSimple.Direction.FORWARD);
-        bL.setDirection(DcMotorSimple.Direction.REVERSE);
-        fR.setDirection(DcMotorSimple.Direction.REVERSE);
-        bR.setDirection(DcMotorSimple.Direction.FORWARD);
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
         elevator.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
-        //flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //UNCOMMENT IF USING ANDYMARK
-        flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //COMMENT IF USING ANDYMARK
-        bL.setMaxSpeed(2800);
-        bR.setMaxSpeed(2800);
-
+        flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         pushL.setDirection(DcMotorSimple.Direction.FORWARD);
         pushR.setDirection(DcMotorSimple.Direction.REVERSE);
         flip.setDirection(Servo.Direction.FORWARD);
         load.setDirection(Servo.Direction.FORWARD);
 
-        flip.setPosition(flipPos);
-        load.setPosition(loadPos);
+        flip.setPosition(0.5);
+        load.setPosition(0);
 
         light_ground.enableLed(true);
         light_beacon.enableLed(false);
     }
 
+    private void rampFlywheelUp() throws InterruptedException {
+        while (flyPower < 1) {
+            flyPower = Range.clip(flyPower + 0.25, 0, 1);
+            flywheel.setPower(flyPower);
+            sleep(450);
+        }
+    }
+
+    private void rampFlywheelDown() throws InterruptedException {
+        while (flyPower > 0) {
+            flyPower = Range.clip(flyPower - 0.25, 0, 1);
+            flywheel.setPower(flyPower);
+            sleep(450);
+        }
+    }
+
+    private void autoShoot() throws InterruptedException{
+        rampFlywheelUp();
+        sleep(150);
+        elevator.setPower(1);
+        sleep(2000);
+        elevator.setPower(0);
+        sleep(150);
+        rampFlywheelDown();
+        flip.setPosition(0);
+    }
+
+    private void moveToLine(){
+        driveTrain.setPower(0.8);
+        while(light_ground.getLightDetected() <= LINE_THRESHOLD){
+            idle();
+        }
+        driveTrain.setPower(0);
+    }
+
+    private void forward(){
+        driveTrain.setPower(-0.3);
+        sleep(350);
+        driveTrain.stop();
+        sleep(150);
+    }
+
+    protected void backward(){
+        driveTrain.setPower(0.15);
+        sleep(100);
+        driveTrain.stop();
+        sleep(150);
+    }
+
+
+    private void pressBlue(){                                 //These two seem opposite, it's pressing the color stated to change it to the other
+        if(light_beacon.getRawLightDetected() <= BEACON_THRESHOLD){
+            forward();
+            backward();
+        }
+    }
+
+    private void pressRed(){
+        if(light_beacon.getRawLightDetected() > BEACON_THRESHOLD){
+            forward();
+            backward();
+        }
+    }
+
+
     @Override
     public void runOpMode() throws InterruptedException {
         initialize();
         waitForStart();
+        pushL.setPower(0.7);
+        pushR.setPower(0.7);
+        sleep(1500);
+        pushL.setPower(0);
+        pushR.setPower(0);
 
-        fL.setPower(-0.4);      //RAMP UP FOR EASY START
-        bL.setPower(-0.4);
-        bR.setPower(-0.4);
-        fR.setPower(-0.4);
+        driveTrain.turn("left", 0.5*alliance);                   //Turns towards beacon
+        sleep(500);                 //TODO towards beacon
+        driveTrain.stop();
+        sleep(150);
 
-        sleep(125);
+        driveTrain.setPower(0.5);                       //Ram into beacon to activate
+        sleep(1000);                //TODO minimize
+        driveTrain.stop();
+        sleep(150);
 
-        fL.setPower(-0.2);      //SWITCH TO ACTUAL POWER
-        bL.setPower(-0.2);
-        bR.setPower(-0.2);
-        fR.setPower(-0.2);
+        backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
+        if (alliance == 1) pressBlue();
+        else pressRed();
 
-        while(light_ground.getRawLightDetected() < 1.8 && opModeIsActive()){    //Runs until white beacon line is seen
-            idle();
-        }
+        driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
+        sleep(1000);                //TODO find timing for optimal distance
+        driveTrain.stop();
+        sleep(150);
 
-        stopDrive();
+        autoShoot();                                    //Automatically shoots
 
-        fL.setPower(-0.2);
-        bL.setPower(-0.2);
-        bR.setPower(-0.2);
-        fR.setPower(-0.2);
+        driveTrain.setPower(0.5);
+        sleep(1000);
+        driveTrain.stop();
+        sleep(150);
 
-        fL.setPower(-0.2);
-        bL.setPower(-0.2);
-        bR.setPower(-0.2);
-        fR.setPower(-0.2);
+        driveTrain.turn("right", 0.5*alliance);                   //Turns towards next beacon line
+        sleep(500);                 //TODO ~90 deg towards next beacon line
+        driveTrain.stop();
+        sleep(150);
 
-        stopDrive();
+        moveToLine();                                   //Moves to next beacon line
+        sleep(250);
 
+        driveTrain.turn("left", 0.5*alliance);                   //Turns towards next beacon
+        sleep(500);                 //TODO ~90 deg towards next beacon
+        driveTrain.stop();
+        sleep(150);
 
+        driveTrain.setPower(0.5);                       //Ram into beacon to activate
+        sleep(1000);                //TODO minimize
+        driveTrain.stop();
+        sleep(150);
 
+        backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
+        if (alliance == 1) pressBlue();
+        else pressRed();
     }
 }

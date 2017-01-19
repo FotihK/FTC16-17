@@ -23,7 +23,7 @@ public abstract class AutonomousTemp extends LinearOpMode {
     protected final double[] servoEndPositions = {0.55, 0.35};      //Left, Right
     protected final double BEACON_THRESHOLD = 1.875;            //Less than for blue, greater than for red
     protected final double LINE_THRESHOLD = 1.8;
-    protected int alliance;                                     //Red is 1, Blue is -1
+    protected int alliance = 0;                                     //Red is 1, Blue is -1
 
 
     protected void initialize() {
@@ -80,9 +80,9 @@ public abstract class AutonomousTemp extends LinearOpMode {
         rampFlywheelDown();
     }
 
-    protected void moveToLine(){
+    protected void moveToLine() {
         driveTrain.setPower(0.5);
-        while(light_ground.getLightDetected() < LINE_THRESHOLD){
+        while (light_ground.getLightDetected() < LINE_THRESHOLD) {
             idle();
         }
         driveTrain.stop();
@@ -92,14 +92,14 @@ public abstract class AutonomousTemp extends LinearOpMode {
         driveTrain.stop();
     }
 
-    private void forward(){
+    private void forward() {
         driveTrain.setPower(-0.3);
         sleep(350);
         driveTrain.stop();
         sleep(150);
     }
 
-    protected void backward(){
+    protected void backward() {
         driveTrain.setPower(0.15);
         sleep(100);
         driveTrain.stop();
@@ -107,21 +107,107 @@ public abstract class AutonomousTemp extends LinearOpMode {
     }
 
 
-    protected void pressBlue(){
-        if(light_beacon.getRawLightDetected() <= BEACON_THRESHOLD){
+    protected void pressBlue() {
+        if (light_beacon.getRawLightDetected() <= BEACON_THRESHOLD) {
             forward();
             backward();
         }
     }
 
-    protected void pressRed(){
-        if(light_beacon.getRawLightDetected() > BEACON_THRESHOLD){
+    protected void pressRed() {
+        if (light_beacon.getRawLightDetected() > BEACON_THRESHOLD) {
             forward();
             backward();
         }
     }
 
     @Override
-    public abstract void runOpMode() throws InterruptedException;
+    public void runOpMode() throws InterruptedException {
+        initialize();                                   //initializes, waits for start
+        waitForStart();
+        pushL.setPosition(servoEndPositions[0]);        //puts servos down
+        pushR.setPosition(servoEndPositions[1]);
 
+        sleep(5000);
+        moveToLine();                                   //Waits 5 seconds, moves to first beacon line
+        sleep(250);
+
+        driveTrain.turn("left", 0.5 * alliance);                   //Turns towards beacon
+        sleep(500);                 //TODO towards beacon
+        driveTrain.stop();
+        sleep(150);
+
+        driveTrain.setPower(0.5);                       //Ram into beacon to activate
+        sleep(1000);                //TODO minimize
+        driveTrain.stop();
+        sleep(150);
+
+        backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
+        if (alliance == 1) pressBlue();
+        else pressRed();
+
+        driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
+        sleep(1000);                //TODO find timing for optimal distance
+        driveTrain.stop();
+        sleep(150);
+
+        autoShoot();                                    //Automatically shoots, see AutonomouTemp
+
+        driveTrain.setPower(0.5);
+        sleep(1000);
+        driveTrain.stop();
+        sleep(150);
+
+        driveTrain.turn("right", 0.5 * alliance);                   //Turns towards next beacon line
+        sleep(500);                 //TODO ~90 deg towards next beacon line
+        driveTrain.stop();
+        sleep(150);
+
+        moveToLine();                                   //Moves to next beacon line
+        sleep(250);
+
+        driveTrain.turn("left", 0.5 * alliance);                   //Turns towards next beacon
+        sleep(500);                 //TODO ~90 deg towards next beacon
+        driveTrain.stop();
+        sleep(150);
+
+        driveTrain.setPower(0.5);                       //Ram into beacon to activate
+        sleep(1000);                //TODO minimize
+        driveTrain.stop();
+        sleep(150);
+
+        backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
+        if (alliance == 1) pressBlue();
+        else pressRed();
+
+        driveTrain.setPower(-0.5);                      //Backs away from the beacon to turn towards ramp
+        sleep(1000);                //TODO find timing for optimal distance
+        driveTrain.stop();
+        sleep(150);
+
+        driveTrain.turn("left", 0.5 * alliance);                   //Turns towards front of ramp
+        sleep(500);                 //TODO ~90 deg towards front of ramp
+        driveTrain.stop();
+        pushL.setPosition(servoStartPositions[0]);        //puts servos up
+        pushR.setPosition(servoStartPositions[1]);
+        sleep(150);
+
+        driveTrain.setPower(0.5);                      //Moves towards front of ramp
+        sleep(2500);                //TODO find timing for optimal distance
+        driveTrain.stop();
+        sleep(150);
+
+        driveTrain.turn("right", 0.5 * alliance);                   //Turns towards ramp
+        sleep(500);                 //TODO ~45 deg towards ramp
+        driveTrain.stop();
+        sleep(150);
+
+        sleep(500);
+
+        driveTrain.setPower(0.7);       //Climb up onto ramp and keep climbing
+        while (opModeIsActive()) {
+            sleep(1);
+        }
+    }
 }
+

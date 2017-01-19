@@ -11,15 +11,23 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 public class DriveTrain {
-    private DcMotor left, right;
+    private DcMotor fL, fR, bL, bR;
 
-    public DriveTrain(DcMotor left, DcMotor right) {
-        this.left = left;
-        this.right = right;
-        left.setDirection(DcMotorSimple.Direction.FORWARD);
-        right.setDirection(DcMotorSimple.Direction.REVERSE);
-        left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    public DriveTrain(DcMotor fL, DcMotor fR, DcMotor bL, DcMotor bR) {
+        this.fL = fL;
+        this.fR = fR;
+        this.bL = bL;
+        this.bR = bR;
+
+        fL.setDirection(DcMotorSimple.Direction.FORWARD);
+        bL.setDirection(DcMotorSimple.Direction.REVERSE);
+        fR.setDirection(DcMotorSimple.Direction.REVERSE);
+        bR.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        fL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        fR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     /**
@@ -32,15 +40,31 @@ public class DriveTrain {
     @SuppressWarnings("WeakerAccess")
     public void setDirection(String motor, DcMotorSimple.Direction dir) {
         switch (motor.toLowerCase()) {
-            case "left":
-                left.setDirection(dir);
+            case "fl":
+                fL.setDirection(dir);
                 break;
-            case "right":
-                right.setDirection(dir);
+            case "fr":
+                fR.setDirection(dir);
                 break;
-            case "both":
-                left.setDirection(dir);
-                right.setDirection(dir);
+            case "front":
+                fL.setDirection(dir);
+                fR.setDirection(dir);
+                break;
+            case "bl":
+                bL.setDirection(dir);
+                break;
+            case "br":
+                bR.setDirection(dir);
+                break;
+            case "back":
+                bL.setDirection(dir);
+                bR.setDirection(dir);
+                break;
+            case "all":
+                fL.setDirection(dir);
+                fR.setDirection(dir);
+                bL.setDirection(dir);
+                bR.setDirection(dir);
                 break;
         }
     }
@@ -55,15 +79,31 @@ public class DriveTrain {
     @SuppressWarnings("WeakerAccess")
     public void setMode(String motor, DcMotor.RunMode mode) {
         switch (motor.toLowerCase()) {
-            case "left":
-                left.setMode(mode);
+            case "fl":
+                fL.setMode(mode);
                 break;
-            case "right":
-                right.setMode(mode);
+            case "fr":
+                fR.setMode(mode);
                 break;
-            case "both":
-                left.setMode(mode);
-                right.setMode(mode);
+            case "front":
+                fL.setMode(mode);
+                fR.setMode(mode);
+                break;
+            case "bl":
+                bL.setMode(mode);
+                break;
+            case "br":
+                bR.setMode(mode);
+                break;
+            case "back":
+                bL.setMode(mode);
+                bR.setMode(mode);
+                break;
+            case "all":
+                fL.setMode(mode);
+                fR.setMode(mode);
+                bL.setMode(mode);
+                bR.setMode(mode);
                 break;
         }
     }
@@ -72,7 +112,7 @@ public class DriveTrain {
      * Retrieves the y-stick values of the given gamepad and returns them provided they are not within dead zone
      *
      * @param gp Gamepad from which to retrieve values
-     * @return an array of the y-stick values {left, right}
+     * @return an array of the y-stick values {fL, fR}
      * @see #tankDrive(Gamepad)
      * @see #arcadeDrive(Gamepad)
      */
@@ -85,7 +125,7 @@ public class DriveTrain {
      * Retrieves the x-stick values of the given gamepad and returns them provided they are not within dead zone
      *
      * @param gp Gamepad from which to retrieve values
-     * @return an array of the x-stick values {left, right}
+     * @return an array of the x-stick values {fL, fR}
      * @see #tankDrive(Gamepad)
      * @see #arcadeDrive(Gamepad)
      */
@@ -100,18 +140,22 @@ public class DriveTrain {
      * @param gp Gamepad used to drive the DriveTrain
      */
     public void tankDrive(Gamepad gp) {
-        left.setPower(getGamepadYValues(gp)[0]);
-        right.setPower(getGamepadYValues(gp)[1]);
+        fL.setPower(getGamepadYValues(gp)[0]);
+        bL.setPower(getGamepadYValues(gp)[0]);
+        fR.setPower(getGamepadYValues(gp)[1]);
+        bR.setPower(getGamepadYValues(gp)[1]);
     }
 
     /**
-     * Arcade drive using right stick of given gamepad
+     * Arcade drive using fR stick of given gamepad
      *
      * @param gp Gamepad used to drive the DriveTrain
      */
     public void arcadeDrive(Gamepad gp) {
-        left.setPower(getGamepadYValues(gp)[1] + getGamepadXValues(gp)[1]);
-        right.setPower(getGamepadYValues(gp)[1] - getGamepadXValues(gp)[1]);
+        fL.setPower(getGamepadYValues(gp)[1] + getGamepadXValues(gp)[1]);
+        fR.setPower(getGamepadYValues(gp)[1] - getGamepadXValues(gp)[1]);
+        bL.setPower(getGamepadYValues(gp)[1] + getGamepadXValues(gp)[1]);
+        bR.setPower(getGamepadYValues(gp)[1] - getGamepadXValues(gp)[1]);
     }
 
     /**
@@ -121,16 +165,20 @@ public class DriveTrain {
      */
     public void setPower(double pow) {
         pow = Range.clip(pow, -1, 1);
-        left.setPower(pow);
-        right.setPower(pow);
+        fL.setPower(pow);
+        fR.setPower(pow);
+        bL.setPower(pow);
+        bR.setPower(pow);
     }
 
     /**
      * Quick stop method for both motors
      */
     public void stop() {
-        left.setPower(0);
-        right.setPower(0);
+        fL.setPower(0);
+        fR.setPower(0);
+        bL.setPower(0);
+        bR.setPower(0);
     }
 
     /**
@@ -143,12 +191,16 @@ public class DriveTrain {
         pow = Range.clip(pow, -1, 1);
         switch (dir.toLowerCase()) {
             case "left":
-                left.setPower(-pow);
-                right.setPower(pow);
+                fL.setPower(-pow);
+                fR.setPower(pow);
+                bL.setPower(-pow);
+                bR.setPower(pow);
                 break;
             default:
-                left.setPower(pow);
-                right.setPower(-pow);
+                fL.setPower(pow);
+                fR.setPower(-pow);
+                bL.setPower(pow);
+                bR.setPower(-pow);
         }
     }
 

@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Created by HP on 9/29/2016.
@@ -18,9 +19,11 @@ public class TeleOp_PrafulBot extends OpMode {
     private DcMotor intake, elevator, flywheel;
     private CRServo pushL, pushR;
     private Servo flip, load;
-    private boolean[] toggleStates = new boolean[3]; //ind 0 is flywheel, ind 1 is flip servo, ind 2 is load servo
+    private boolean[] toggleStates = new boolean[3]; //ind 0 is intake, ind 1 is flip servo, ind 2 is load servo
+    private boolean movingState;
     private double flyPower = 0;
     private double flipPos = 0, loadPos = 0;
+    private ElapsedTime rampTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     @Override
     public void init() {
@@ -53,6 +56,29 @@ public class TeleOp_PrafulBot extends OpMode {
         load.setPosition(loadPos);
     }
 
+    private void rampFlywheelUp() {
+        if (flyPower <= 1.00 && rampTimer.time() > 350) {
+            flyPower += 0.25;
+            flywheel.setPower(flyPower);
+            rampTimer.reset();
+        }
+        if (flyPower >= 1.00) {
+            flyPower = 1.00;
+        }
+        flywheel.setPower(flyPower);
+    }
+
+    private void rampFlywheelDown() {
+        if (flyPower > 0 && rampTimer.time() > 450) {
+            flyPower -= 0.25;
+            flywheel.setPower(flyPower);
+            rampTimer.reset();
+        } else if (flyPower <= 0) {
+            flyPower = 0;
+        }
+        flywheel.setPower(flyPower);
+    }
+
     private double[] controllerYValues(Gamepad gamepad) {  // index 0 is left, index 1 is right
         double[] returnVals = new double[2];
         returnVals[0] = Math.abs(gamepad.left_stick_y) > 0.025 ? gamepad1.left_stick_y : 0;
@@ -72,17 +98,28 @@ public class TeleOp_PrafulBot extends OpMode {
             pushR.setPower(0);
         }
 
-        if (gamepad1.dpad_up) {
-            intake.setPower(0.95);
-        } else if (gamepad1.dpad_down) {
-            intake.setPower(-0.95);
-        } else intake.setPower(0);
-
-        if (gamepad1.y && !toggleStates[0]) {
-            flyPower = flyPower == 0 ? 0.9 : 0;
-            flywheel.setPower(flyPower);
+        if (gamepad1.x && !toggleStates[0]) {       //Up toggle for intake
+            if (movingState) {
+                intake.setPower(0);
+                movingState = false;
+            } else {
+                movingState = true;
+                intake.setPower(1.00);
+            }
             toggleStates[0] = true;
-        } else if (!gamepad1.y) toggleStates[0] = false;
+        } else if (gamepad1.b && !toggleStates[0]) {    //Down toggle for intake
+            if (movingState) {
+                intake.setPower(0);
+                movingState = false;
+            } else {
+                movingState = true;
+                intake.setPower(-1.00);
+            }
+            toggleStates[0] = true;
+        } else if (!gamepad1.dpad_down && !gamepad1.dpad_up) toggleStates[0] = false;
+
+        if(gamepad1.y) rampFlywheelUp();
+        if(gamepad1.a) rampFlywheelDown();
     }
 
     private void checkGamepad2() {
@@ -106,8 +143,8 @@ public class TeleOp_PrafulBot extends OpMode {
     }
 
     public void telemetry() {
-        telemetry.addData("Load Servo is on: ", loadPos == 0.5);
-        telemetry.addData("Flip Servo is on: ", flipPos == 1);
+        telemetry.addData("Load Servo is: ", loadPos == 0.5 ? "Up" : "Down");
+        telemetry.addData("Flip Servo is: ", flipPos == 0.5 ? "Up" : "Down");
     }
 
     @Override

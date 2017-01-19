@@ -34,7 +34,8 @@ public class AutonomousRED extends AutonomousTemp {
         sleep(150);
 
         backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
-        pressBlue();
+        if (alliance == 1) pressBlue();
+        else pressRed();
 
         driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
         sleep(1000);                //TODO find timing for optimal distance
@@ -67,7 +68,8 @@ public class AutonomousRED extends AutonomousTemp {
         sleep(150);
 
         backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
-        pressBlue();
+        if (alliance == 1) pressBlue();
+        else pressRed();
 
         driveTrain.setPower(-0.5);                      //Backs away from the beacon to turn towards ramp
         sleep(1000);                //TODO find timing for optimal distance
