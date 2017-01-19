@@ -7,14 +7,14 @@ import org.firstinspires.ftc.teamcode.FTC_RED.Helper.AutonomousTemp;
 /**
  * Created by fotih on 12/9/2016.
  */
-@Autonomous(name = "Red", group = "Auton")
-public class AutonomousBlue extends AutonomousTemp {
+@Autonomous(name = "Blue", group = "Auton")
+public class AutonomousBLUE extends AutonomousTemp {
 
     //TODO: Tweak timings to make everything run smoothly
     @Override
     public void runOpMode() throws InterruptedException {
         initialize();                                   //initializes, waits for start
-        alliance = 1;
+        alliance = -1;
         waitForStart();
         pushL.setPosition(servoEndPositions[0]);        //puts servos down
         pushR.setPosition(servoEndPositions[1]);
@@ -34,7 +34,8 @@ public class AutonomousBlue extends AutonomousTemp {
         sleep(150);
 
         backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
-        pressBlue();
+        if (alliance == 1) pressBlue();
+        else pressRed();
 
         driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
         sleep(1000);                //TODO find timing for optimal distance
@@ -67,9 +68,10 @@ public class AutonomousBlue extends AutonomousTemp {
         sleep(150);
 
         backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
-        pressBlue();
+        if (alliance == 1) pressBlue();
+        else pressRed();
 
-        driveTrain.setPower(-0.5);                      //Backs away from the beacon to turn towards ramp
+        driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
         sleep(1000);                //TODO find timing for optimal distance
         driveTrain.stop();
         sleep(150);
