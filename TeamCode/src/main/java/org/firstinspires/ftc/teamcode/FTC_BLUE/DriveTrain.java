@@ -14,15 +14,15 @@ public class DriveTrain {
     private DcMotor fL, fR, bL, bR;
 
     public DriveTrain(DcMotor fL, DcMotor fR, DcMotor bL, DcMotor bR) {
-        this.fL = fL;
-        this.fR = fR;
-        this.bL = bL;
-        this.bR = bR;
+        this.fL = bR;
+        this.fR = bL;
+        this.bL = fR;
+        this.bR = fL;
 
-        fL.setDirection(DcMotorSimple.Direction.FORWARD);
-        bL.setDirection(DcMotorSimple.Direction.REVERSE);
-        fR.setDirection(DcMotorSimple.Direction.REVERSE);
-        bR.setDirection(DcMotorSimple.Direction.FORWARD);
+        bL.setDirection(DcMotorSimple.Direction.FORWARD);
+        fL.setDirection(DcMotorSimple.Direction.REVERSE);
+        bR.setDirection(DcMotorSimple.Direction.REVERSE);
+        fR.setDirection(DcMotorSimple.Direction.FORWARD);
 
         fL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         fR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

@@ -136,7 +136,7 @@ public abstract class TeleOpTemp extends OpMode {
     }
 
     protected void checkGamepad2() {                   //Buttons for gamepad 2
-        if (gamepad2.dpad_up && !toggleStates[1]) {   //Up toggle for belt
+        /*if (gamepad2.dpad_up && !toggleStates[1]) {   //Up toggle for belt
             if (movingStates[1]) {
                 belt.setPower(0);
                 movingStates[1] = false;
@@ -158,7 +158,11 @@ public abstract class TeleOpTemp extends OpMode {
                 isOn[2] = true;
             }
             toggleStates[1] = true;
-        } else if (!gamepad2.dpad_down && !gamepad2.dpad_up) toggleStates[1] = false;
+        } else if (!gamepad2.dpad_down && !gamepad2.dpad_up) toggleStates[1] = false;*/
+
+        if(gamepad2.dpad_up) belt.setPower(1);
+        else if(gamepad2.dpad_down) belt.setPower(0);
+        else belt.setPower(0);
 
         if (gamepad2.y) {       //y is 3
             rampFlywheelUp();

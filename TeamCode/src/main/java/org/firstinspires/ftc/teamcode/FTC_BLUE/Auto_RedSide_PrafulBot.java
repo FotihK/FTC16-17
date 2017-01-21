@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 
@@ -17,14 +18,14 @@ import com.qualcomm.robotcore.util.Range;
 public class Auto_RedSide_PrafulBot extends LinearOpMode {
     private DriveTrain driveTrain;
     private DcMotor elevator, flywheel;
-    private CRServo pushL, pushR;
     private Servo flip;
-    private Servo load;
     private double flyPower = 0;
     private LightSensor light_ground, light_beacon;
     private final double BEACON_THRESHOLD = 1.875;            //Less than for blue, greater than for red
-    private final double LINE_THRESHOLD = 1.8;
+    private final double LINE_THRESHOLD = 0.3;
     int alliance = 1;                   //1 for red, -1 for blue
+    double turnPow = 0.35;
+    private ElapsedTime sleepTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     public void initialize(){
         driveTrain = new DriveTrain(hardwareMap.dcMotor.get("fL"), hardwareMap.dcMotor.get("fR"), hardwareMap.dcMotor.get("bL"),
@@ -32,10 +33,7 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
 
         elevator = hardwareMap.dcMotor.get("elevator");
         flywheel = hardwareMap.dcMotor.get("flywheel");
-        pushL = hardwareMap.crservo.get("pushL");
-        pushR = hardwareMap.crservo.get("pushR");
         flip = hardwareMap.servo.get("flip");
-        load = hardwareMap.servo.get("load");
         light_ground = hardwareMap.lightSensor.get("light_ground");
         light_beacon = hardwareMap.lightSensor.get("light_beacon");
 
@@ -43,17 +41,21 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        pushL.setDirection(DcMotorSimple.Direction.FORWARD);
-        pushR.setDirection(DcMotorSimple.Direction.REVERSE);
         flip.setDirection(Servo.Direction.FORWARD);
-        load.setDirection(Servo.Direction.FORWARD);
 
         flip.setPosition(0.5);
-        load.setPosition(0);
 
         light_ground.enableLed(true);
         light_beacon.enableLed(false);
     }
+
+    private void sleep(int milliseconds) {
+        sleepTimer.reset();
+        while(sleepTimer.milliseconds() <= milliseconds && opModeIsActive()){
+            idle();
+        }
+    }
+
 
     private void rampFlywheelUp() throws InterruptedException {
         while (flyPower < 1) {
@@ -75,7 +77,7 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         rampFlywheelUp();
         sleep(150);
         elevator.setPower(1);
-        sleep(2000);
+        sleep(3000);
         elevator.setPower(0);
         sleep(150);
         rampFlywheelDown();
@@ -84,9 +86,10 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
 
     private void moveToLine(){
         driveTrain.setPower(0.8);
-        while(light_ground.getLightDetected() <= LINE_THRESHOLD){
+        while(light_ground.getLightDetected() <= LINE_THRESHOLD && opModeIsActive()){
             idle();
         }
+        sleep(175);
         driveTrain.setPower(0);
     }
 
@@ -124,19 +127,17 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         initialize();
         waitForStart();
-        pushL.setPower(0.7);
-        pushR.setPower(0.7);
-        sleep(1500);
-        pushL.setPower(0);
-        pushR.setPower(0);
 
-        driveTrain.turn("left", 0.5*alliance);                   //Turns towards beacon
+        moveToLine();
+
+        sleep(500);
+        driveTrain.turn("left", turnPow*alliance);                   //Turns towards beacon
         sleep(500);                 //TODO towards beacon
         driveTrain.stop();
         sleep(150);
 
-        driveTrain.setPower(0.5);                       //Ram into beacon to activate
-        sleep(1000);                //TODO minimize
+        driveTrain.setPower(0.3);                       //Ram into beacon to activate
+        sleep(900);                //TODO minimize
         driveTrain.stop();
         sleep(150);
 
@@ -144,27 +145,30 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         if (alliance == 1) pressBlue();
         else pressRed();
 
-        driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
-        sleep(1000);                //TODO find timing for optimal distance
+        sleep(1000);
+
+        driveTrain.setPower(-0.4);                      //Backs away from the beacon to get ready to shoot preloads
+        sleep(1050);                //TODO find timing for optimal distance
         driveTrain.stop();
         sleep(150);
 
         autoShoot();                                    //Automatically shoots
 
         driveTrain.setPower(0.5);
-        sleep(1000);
+        sleep(700);
         driveTrain.stop();
         sleep(150);
 
-        driveTrain.turn("right", 0.5*alliance);                   //Turns towards next beacon line
-        sleep(500);                 //TODO ~90 deg towards next beacon line
+        driveTrain.turn("right", turnPow*alliance);                   //Turns towards next beacon line
+        sleep(960);                 //TODO ~90 deg towards next beacon line
         driveTrain.stop();
         sleep(150);
 
         moveToLine();                                   //Moves to next beacon line
         sleep(250);
 
-        driveTrain.turn("left", 0.5*alliance);                   //Turns towards next beacon
+        /*
+        driveTrain.turn("left", turnPow*alliance);                   //Turns towards next beacon
         sleep(500);                 //TODO ~90 deg towards next beacon
         driveTrain.stop();
         sleep(150);
@@ -177,5 +181,6 @@ public class Auto_RedSide_PrafulBot extends LinearOpMode {
         backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
         if (alliance == 1) pressBlue();
         else pressRed();
+        */
     }
 }

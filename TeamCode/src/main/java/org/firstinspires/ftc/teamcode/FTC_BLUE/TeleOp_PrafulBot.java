@@ -17,10 +17,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class TeleOp_PrafulBot extends OpMode {
     private DcMotor fL, fR, bL, bR;
     private DcMotor intake, elevator, flywheel;
-    private CRServo pushL, pushR;
     private Servo flip, load;
     private boolean[] toggleStates = new boolean[3]; //ind 0 is intake, ind 1 is flip servo, ind 2 is load servo
-    private boolean movingState;
+    private boolean movingState = false;
     private double flyPower = 0;
     private double flipPos = 0, loadPos = 0;
     private ElapsedTime rampTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -34,8 +33,6 @@ public class TeleOp_PrafulBot extends OpMode {
         intake = hardwareMap.dcMotor.get("intake");
         elevator = hardwareMap.dcMotor.get("elevator");
         flywheel = hardwareMap.dcMotor.get("flywheel");
-        pushL = hardwareMap.crservo.get("pushL");
-        pushR = hardwareMap.crservo.get("pushR");
         flip = hardwareMap.servo.get("flip");
         load = hardwareMap.servo.get("load");
 
@@ -47,8 +44,6 @@ public class TeleOp_PrafulBot extends OpMode {
         elevator.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        pushL.setDirection(DcMotorSimple.Direction.FORWARD);
-        pushR.setDirection(DcMotorSimple.Direction.REVERSE);
         flip.setDirection(Servo.Direction.FORWARD);
         load.setDirection(Servo.Direction.FORWARD);
 
@@ -87,18 +82,7 @@ public class TeleOp_PrafulBot extends OpMode {
     }
 
     private void checkGamepad1() {
-        if (gamepad1.dpad_left) {
-            pushL.setPower(0.7);
-            pushR.setPower(0.7);
-        } else if (gamepad1.dpad_right) {
-            pushL.setPower(-0.7);
-            pushR.setPower(-0.7);
-        } else {
-            pushL.setPower(0);
-            pushR.setPower(0);
-        }
-
-        if (gamepad1.x && !toggleStates[0]) {       //Up toggle for intake
+        if (gamepad1.y && !toggleStates[0]) {       //Up toggle for intake
             if (movingState) {
                 intake.setPower(0);
                 movingState = false;
@@ -107,7 +91,7 @@ public class TeleOp_PrafulBot extends OpMode {
                 intake.setPower(1.00);
             }
             toggleStates[0] = true;
-        } else if (gamepad1.b && !toggleStates[0]) {    //Down toggle for intake
+        } else if (gamepad1.a && !toggleStates[0]) {    //Down toggle for intake
             if (movingState) {
                 intake.setPower(0);
                 movingState = false;
@@ -116,10 +100,10 @@ public class TeleOp_PrafulBot extends OpMode {
                 intake.setPower(-1.00);
             }
             toggleStates[0] = true;
-        } else if (!gamepad1.dpad_down && !gamepad1.dpad_up) toggleStates[0] = false;
+        } else if (!gamepad1.y && !gamepad1.a) toggleStates[0] = false;
 
-        if(gamepad1.y) rampFlywheelUp();
-        if(gamepad1.a) rampFlywheelDown();
+        if(gamepad1.x) rampFlywheelUp();
+        if(gamepad1.b) rampFlywheelDown();
     }
 
     private void checkGamepad2() {
@@ -130,21 +114,21 @@ public class TeleOp_PrafulBot extends OpMode {
         } else elevator.setPower(0);
 
         if (gamepad2.b && !toggleStates[1]) {
-            flipPos = flipPos == 0 ? 0.5 : 0;
+            flipPos = flipPos == 0 ? 0.35 : 0;
             flip.setPosition(flipPos);
             toggleStates[1] = true;
         } else if (!gamepad2.b) toggleStates[1] = false;
 
         if (gamepad2.x && !toggleStates[2]) {
-            loadPos = loadPos == 0 ? 0.5 : 0;
+            loadPos = loadPos == 0 ? 0.55 : 0;
             load.setPosition(loadPos);
             toggleStates[2] = true;
         } else if (!gamepad2.x) toggleStates[2] = false;
     }
 
     public void telemetry() {
-        telemetry.addData("Load Servo is: ", loadPos == 0.5 ? "Up" : "Down");
-        telemetry.addData("Flip Servo is: ", flipPos == 0.5 ? "Up" : "Down");
+        telemetry.addData("Load Servo is: ", loadPos >= 0.3 ? "Up" : "Down");
+        telemetry.addData("Flip Servo is: ", flipPos >= 0.3 ? "Up" : "Down");
     }
 
     @Override
