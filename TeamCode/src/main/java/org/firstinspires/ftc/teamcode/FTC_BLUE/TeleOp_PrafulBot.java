@@ -102,8 +102,8 @@ public class TeleOp_PrafulBot extends OpMode {
             toggleStates[0] = true;
         } else if (!gamepad1.y && !gamepad1.a) toggleStates[0] = false;
 
-        if(gamepad1.x) rampFlywheelUp();
-        if(gamepad1.b) rampFlywheelDown();
+        if(gamepad1.b) rampFlywheelUp();
+        if(gamepad1.x) rampFlywheelDown();
     }
 
     private void checkGamepad2() {
