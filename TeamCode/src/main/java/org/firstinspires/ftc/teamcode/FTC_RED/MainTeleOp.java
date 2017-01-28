@@ -8,8 +8,7 @@ import org.firstinspires.ftc.teamcode.FTC_RED.Helper.TeleOpTemp;
 /**
  * Created by HP on 11/30/2016.
  */
-@SuppressWarnings("WeakerAccess")
-@TeleOp(name = "TeleOp", group = "OpModes")
+@TeleOp(name = "TeleOp", group = "RED")
 public class MainTeleOp extends TeleOpTemp {
 
     public void telemetry() {

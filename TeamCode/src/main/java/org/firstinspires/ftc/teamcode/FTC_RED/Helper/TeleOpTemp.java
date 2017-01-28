@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.FTC_RED.Helper;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by HP on 12/30/2016.
@@ -40,7 +40,9 @@ public abstract class TeleOpTemp extends OpMode {
         pushL.setDirection(Servo.Direction.FORWARD);
         pushR.setDirection(Servo.Direction.FORWARD);
 
-        flywheel.setMode("both", DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //flywheel.setMode("both", DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        flywheel.setMode("both", DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         pushL.setPosition(servoStartPositions[0]);
         pushR.setPosition(servoStartPositions[1]);
@@ -48,12 +50,12 @@ public abstract class TeleOpTemp extends OpMode {
     }
 
     private void rampFlywheelUp() {
-        if (flyPower <= 1.00 && rampTimer.time() > 350) {
-            flyPower += 0.25;
+        if (flyPower < 1.00 && rampTimer.time() > 350) {
+            flyPower = Range.clip(flyPower + 0.25, 0, 1);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         }
-        if (flyPower >= 1.00) {
+        else if (flyPower >= 1.00) {
             flyPower = 1.00;
             isOn[0] = true;
         }
@@ -62,7 +64,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDown() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower -= 0.25;
+            flyPower = Range.clip(flyPower - 0.25, 0, 1);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {
@@ -73,12 +75,12 @@ public abstract class TeleOpTemp extends OpMode {
     }
 
     private void rampFlywheelUpSlow() {
-        if (flyPower <= 1.00 && rampTimer.time() > 350) {
-            flyPower += 0.125;
+        if (flyPower < 1.00 && rampTimer.time() > 350) {
+            flyPower = Range.clip(flyPower + 0.125, 0, 1);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         }
-        if (flyPower >= 1.00) {
+        else if (flyPower >= 1.00) {
             flyPower = 1.00;
             isOn[0] = true;
         }
@@ -87,7 +89,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDownSlow() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower -= 0.125;
+            flyPower = Range.clip(flyPower - 0.125, 0, 1);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {
@@ -131,7 +133,7 @@ public abstract class TeleOpTemp extends OpMode {
         if (gamepad1.right_bumper && !toggleStates[3]) {  //Toggle for pushR
             pushR.setPosition(pushR.getPosition() == servoStartPositions[1] ? servoEndPositions[1] : servoStartPositions[1]);
             toggleStates[3] = true;
-    } else if (!gamepad1.right_bumper) toggleStates[3] = false;
+        } else if (!gamepad1.right_bumper) toggleStates[3] = false;
 
     }
 
@@ -160,8 +162,8 @@ public abstract class TeleOpTemp extends OpMode {
             toggleStates[1] = true;
         } else if (!gamepad2.dpad_down && !gamepad2.dpad_up) toggleStates[1] = false;*/
 
-        if(gamepad2.dpad_up) belt.setPower(1);
-        else if(gamepad2.dpad_down) belt.setPower(0);
+        if (gamepad2.dpad_up) belt.setPower(1);
+        else if (gamepad2.dpad_down) belt.setPower(-1);
         else belt.setPower(0);
 
         if (gamepad2.y) {       //y is 3

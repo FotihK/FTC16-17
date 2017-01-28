@@ -8,17 +8,19 @@ import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.ArrayList;
+
 
 /**
  * Created by HP on 9/29/2016.
  */
 
-@Autonomous(name="BeaconPushTest(Praful)",group = "Tests")
+//@Autonomous(name = "BeaconPushTest(Praful)", group = "BLUE")
 public class BeaconPushTest extends LinearOpMode {
     private DriveTrain driveTrain;
     private LightSensor light;
     private ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    private double thresh = 2.17;
+    private double thresh = 1.94;
     private String last;
 
     public void initialize() {
@@ -28,23 +30,23 @@ public class BeaconPushTest extends LinearOpMode {
         light.enableLed(false);
     }
 
-    private void forward(){
-        driveTrain.setPower(0.2);
+    private void forward() {
+        driveTrain.setPower(0.25);
         timer.reset();
-        while(timer.time() < 350 && opModeIsActive()){
+        while (timer.time() < 450 && opModeIsActive()) {
             telemetry.addData("Raw: ", light.getRawLightDetected());
             telemetry.addData("Val: ", light.getLightDetected());
-            telemetry.addData("pressing","");
+            telemetry.addData("pressing", "");
             telemetry.update();
             idle();
         }
         driveTrain.stop();
     }
 
-    private void backward(){
+    private void backward() {
         driveTrain.setPower(-0.15);
         timer.reset();
-        while(timer.time() < 100 && opModeIsActive()){
+        while (timer.time() < 100 && opModeIsActive()) {
             telemetry.addData("Raw: ", light.getRawLightDetected());
             telemetry.addData("Val: ", light.getLightDetected());
             telemetry.addData("backing", "");
@@ -55,16 +57,48 @@ public class BeaconPushTest extends LinearOpMode {
     }
 
 
-    private void pressBlue(){
-        if(light.getRawLightDetected() <=thresh){
+    private void pressBlue() {
+        ArrayList<Boolean> checks = new ArrayList<>();
+        timer.reset();
+        while(timer.milliseconds() <= 1001 && opModeIsActive()){
+            telemetry.addData("Raw: ", light.getRawLightDetected());
+            telemetry.addData("Val: ", light.getLightDetected());
+            if((timer.milliseconds()%100) >= 0 && (timer.milliseconds()%100) <= 6 ){
+                if(light.getRawLightDetected() <= thresh) checks.add(true);
+            }
+        }
+
+        int count = 0;
+
+        for(boolean check : checks){
+            if(check) count++;
+        }
+
+        if (light.getRawLightDetected() <= thresh && count >= 8) {
             forward();
             backward();
             last = "Blue";
         }
     }
 
-    private void pressRed(){
-        if(light.getRawLightDetected() > thresh){
+    private void pressRed() {
+        ArrayList<Boolean> checks = new ArrayList<>();
+        timer.reset();
+        while(timer.milliseconds() <= 1001 && opModeIsActive()){
+            telemetry.addData("Raw: ", light.getRawLightDetected());
+            telemetry.addData("Val: ", light.getLightDetected());
+            if((timer.milliseconds()%100) >= 0 && (timer.milliseconds()%100) <= 6 ){
+                if(light.getRawLightDetected() > thresh) checks.add(true);
+            }
+        }
+
+        int count = 0;
+
+        for(boolean check : checks){
+            if(check) count++;
+        }
+
+        if (light.getRawLightDetected() > thresh && count >= 8) {
             forward();
             backward();
             last = "Red";
@@ -76,18 +110,18 @@ public class BeaconPushTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         initialize();
         waitForStart();
-
-        while(opModeIsActive()){
-
-            pressBlue();
-            while(timer.time() < 6000 && opModeIsActive()){
+        forward();
+        backward();
+        sleep(6000);
+        while (opModeIsActive()) {
+            pressRed();
+            while (timer.time() < 6000 && opModeIsActive()) {
                 telemetry.addData("Raw: ", light.getRawLightDetected());
                 telemetry.addData("Val: ", light.getLightDetected());
                 telemetry.addData("Waiting", "");
                 telemetry.addLine(last);
                 telemetry.update();
                 idle();
-
             }
         }
     }

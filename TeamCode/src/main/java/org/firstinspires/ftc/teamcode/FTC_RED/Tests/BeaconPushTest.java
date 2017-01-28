@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.FTC_RED.Helper.DriveTrain;
  * Created by HP on 9/29/2016.
  */
 
-@Autonomous(name="BeaconPushTest",group = "Tests")
+//@Autonomous(name="BeaconPushTest",group = "Tests")
 public class BeaconPushTest extends LinearOpMode {
     private DriveTrain driveTrain;
     private LightSensor light;

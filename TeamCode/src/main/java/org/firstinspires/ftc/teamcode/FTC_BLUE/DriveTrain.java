@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.Range;
 
 public class DriveTrain {
     private DcMotor fL, fR, bL, bR;
+    private double rightRatio = 0.7, leftRatio = 1;
 
     public DriveTrain(DcMotor fL, DcMotor fR, DcMotor bL, DcMotor bR) {
         this.fL = bR;
@@ -109,10 +110,30 @@ public class DriveTrain {
     }
 
     /**
+     * This method sets the ratio for either side, to be used for autonomous purposes
+     * @see #setPower(double)
+     *
+     * @param side  The side whose ratio is being changed
+     * @param ratio The ratio value to be assigned
+     * @see #leftRatio
+     * @see #rightRatio
+     */
+    public void setRatio(String side, double ratio){
+        switch(side.toLowerCase()){
+            case "left":
+                leftRatio = ratio;
+                break;
+            default:
+                rightRatio = ratio;
+                break;
+        }
+    }
+
+    /**
      * Retrieves the y-stick values of the given gamepad and returns them provided they are not within dead zone
      *
      * @param gp Gamepad from which to retrieve values
-     * @return an array of the y-stick values {fL, fR}
+     * @return an array of the y-stick values {left, right}
      * @see #tankDrive(Gamepad)
      * @see #arcadeDrive(Gamepad)
      */
@@ -125,7 +146,7 @@ public class DriveTrain {
      * Retrieves the x-stick values of the given gamepad and returns them provided they are not within dead zone
      *
      * @param gp Gamepad from which to retrieve values
-     * @return an array of the x-stick values {fL, fR}
+     * @return an array of the x-stick values {left, right}
      * @see #tankDrive(Gamepad)
      * @see #arcadeDrive(Gamepad)
      */
@@ -165,10 +186,10 @@ public class DriveTrain {
      */
     public void setPower(double pow) {
         pow = Range.clip(pow, -1, 1);
-        fL.setPower(pow);
-        fR.setPower(pow);
-        bL.setPower(pow);
-        bR.setPower(pow);
+        fL.setPower(pow * leftRatio);
+        fR.setPower(pow * rightRatio);
+        bL.setPower(pow * leftRatio);
+        bR.setPower(pow * rightRatio);
     }
 
     /**

@@ -2,19 +2,19 @@ package org.firstinspires.ftc.teamcode.FTC_BLUE;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by HP on 9/29/2016.
  */
 
-@TeleOp(name = "PrafulBot", group = "TeleOp")
-public class TeleOp_PrafulBot extends OpMode {
+@TeleOp(name = "PrafulBot", group = "BLUE")
+public class TeleOp_Main extends OpMode {
     private DcMotor fL, fR, bL, bR;
     private DcMotor intake, elevator, flywheel;
     private Servo flip, load;
@@ -52,24 +52,19 @@ public class TeleOp_PrafulBot extends OpMode {
     }
 
     private void rampFlywheelUp() {
-        if (flyPower <= 1.00 && rampTimer.time() > 350) {
-            flyPower += 0.25;
+        if (flyPower < 0.95 && rampTimer.time() > 350) {
+            flyPower = Range.clip(flyPower + 0.2, 0, 1);
             flywheel.setPower(flyPower);
             rampTimer.reset();
-        }
-        if (flyPower >= 1.00) {
-            flyPower = 1.00;
         }
         flywheel.setPower(flyPower);
     }
 
     private void rampFlywheelDown() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower -= 0.25;
+            flyPower = Range.clip(flyPower - 0.13, 0, 1);
             flywheel.setPower(flyPower);
             rampTimer.reset();
-        } else if (flyPower <= 0) {
-            flyPower = 0;
         }
         flywheel.setPower(flyPower);
     }
@@ -102,8 +97,8 @@ public class TeleOp_PrafulBot extends OpMode {
             toggleStates[0] = true;
         } else if (!gamepad1.y && !gamepad1.a) toggleStates[0] = false;
 
-        if(gamepad1.b) rampFlywheelUp();
-        if(gamepad1.x) rampFlywheelDown();
+        if (gamepad1.b) rampFlywheelUp();
+        if (gamepad1.x) rampFlywheelDown();
     }
 
     private void checkGamepad2() {
@@ -114,13 +109,13 @@ public class TeleOp_PrafulBot extends OpMode {
         } else elevator.setPower(0);
 
         if (gamepad2.b && !toggleStates[1]) {
-            flipPos = flipPos == 0 ? 0.35 : 0;
+            flipPos = flipPos == 0 ? 0.55 : 0;
             flip.setPosition(flipPos);
             toggleStates[1] = true;
         } else if (!gamepad2.b) toggleStates[1] = false;
 
         if (gamepad2.x && !toggleStates[2]) {
-            loadPos = loadPos == 0 ? 0.55 : 0;
+            loadPos = loadPos == 0 ? 0.35 : 0;
             load.setPosition(loadPos);
             toggleStates[2] = true;
         } else if (!gamepad2.x) toggleStates[2] = false;

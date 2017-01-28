@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.Range;
 /**
  * Created by HP on 12/30/2016.
  */
-@Autonomous(name="Servo Test", group = "Tests")
+//@Autonomous(name="Servo Test", group = "Tests")
 public class ServoTest extends LinearOpMode {
     private Servo pushL, pushR;
 
