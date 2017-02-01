@@ -19,9 +19,10 @@ public abstract class TeleOpTemp extends OpMode {
     private boolean[] toggleStates = new boolean[5];    //0th is intake, 1st is belt, 2nd is pushL, 3rd is pushR, 4th is sensor info
     private boolean[] movingStates = new boolean[2];    //0th is intake, 1st is belt
     protected boolean[] isOn = new boolean[4];            //0th is flywheel, 1st is intake, 2nd is belt, 3rd is sensor info
-    private double[] servoStartPositions = {0.97, 0.00};    //Left, Right
+    private double[] servoStartPositions = {0.94, 0.01};    //Left, Right
     private double[] servoEndPositions = {0.55, 0.35};      //Left, Right
     protected double flyPower = 0;
+    private final double maxFly = 0.55;
     private ElapsedTime rampTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     @Override
@@ -40,8 +41,9 @@ public abstract class TeleOpTemp extends OpMode {
         pushL.setDirection(Servo.Direction.FORWARD);
         pushR.setDirection(Servo.Direction.FORWARD);
 
-        //flywheel.setMode("both", DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        flywheel.setMode("both", DcMotor.RunMode.RUN_USING_ENCODER);
+        flywheel.setMode("both", DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //flywheel.setMode("both", DcMotor.RunMode.RUN_USING_ENCODER);
+        //flywheel.setMaxSpeed(100);
 
 
         pushL.setPosition(servoStartPositions[0]);
@@ -50,13 +52,12 @@ public abstract class TeleOpTemp extends OpMode {
     }
 
     private void rampFlywheelUp() {
-        if (flyPower < 1.00 && rampTimer.time() > 350) {
-            flyPower = Range.clip(flyPower + 0.25, 0, 1);
+        if (flyPower < maxFly && rampTimer.time() > 350) {
+            flyPower = Range.clip(flyPower + 0.3, 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
-        }
-        else if (flyPower >= 1.00) {
-            flyPower = 1.00;
+        } else if (flyPower >= maxFly) {
+            flyPower = maxFly;
             isOn[0] = true;
         }
         flywheel.setPower(flyPower);
@@ -64,7 +65,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDown() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower = Range.clip(flyPower - 0.25, 0, 1);
+            flyPower = Range.clip(flyPower - 0.2, 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {
@@ -75,13 +76,12 @@ public abstract class TeleOpTemp extends OpMode {
     }
 
     private void rampFlywheelUpSlow() {
-        if (flyPower < 1.00 && rampTimer.time() > 350) {
-            flyPower = Range.clip(flyPower + 0.125, 0, 1);
+        if (flyPower < maxFly && rampTimer.time() > 350) {
+            flyPower = Range.clip(flyPower + 0.15, 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
-        }
-        else if (flyPower >= 1.00) {
-            flyPower = 1.00;
+        } else if (flyPower >= maxFly) {
+            flyPower = maxFly;
             isOn[0] = true;
         }
         flywheel.setPower(flyPower);
@@ -89,7 +89,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDownSlow() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower = Range.clip(flyPower - 0.125, 0, 1);
+            flyPower = Range.clip(flyPower - 0.12, 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {

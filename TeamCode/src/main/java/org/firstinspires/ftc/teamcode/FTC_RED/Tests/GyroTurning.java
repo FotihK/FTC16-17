@@ -3,7 +3,9 @@ package org.firstinspires.ftc.teamcode.FTC_RED.Tests;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.GyroSensor;
+import com.qualcomm.robotcore.util.ThreadPool;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.FTC_RED.Helper.DriveTrain;
 
 @Autonomous(name="Gyro Turn Test", group = "Tests")
@@ -39,24 +41,24 @@ public class GyroTurning extends LinearOpMode {
         if (wrap) {
             if ((heading + angle) > heading) {
                 driveTrain.turn("right", power);
-                while (heading > newHeading && opModeIsActive()) {
+                while (heading > newHeading && heading < (newHeading + 10) && opModeIsActive()) {
                     idle();
                 }
             } else {
                 driveTrain.turn("left", power);
-                while (heading < newHeading && opModeIsActive()) {
+                while (heading < newHeading && heading < (newHeading + 10) && opModeIsActive()) {
                     idle();
                 }
             }
         } else {
             if ((heading + angle) > heading) {
                 driveTrain.turn("right", power);
-                while (heading < newHeading && opModeIsActive()) {
+                while (heading < newHeading && heading < newHeading + 10 && opModeIsActive()) {
                     idle();
                 }
             } else {
                 driveTrain.turn("left", power);
-                while (heading > newHeading && opModeIsActive()) {
+                while (heading > newHeading && heading < newHeading + 10 && opModeIsActive()) {
                     idle();
                 }
             }
@@ -67,31 +69,35 @@ public class GyroTurning extends LinearOpMode {
     }
 
     private void genOffset(){
-        int sum = 0;
-        for(int i = 0; (i < 50) && (opModeIsActive()); i++){
+        double sum = 0;
+        for(int i = 0; (i < 50); i++){
             sum += gyro.getRotationFraction();
             sleep(15);
         }
-        offset = sum / 50;
+        offset = sum / 50.0;
     }
 
     @Override
     public void runOpMode() throws InterruptedException {
         driveTrain = new DriveTrain(hardwareMap.dcMotor.get("right"), hardwareMap.dcMotor.get("left"));
         gyro = hardwareMap.gyroSensor.get("gyro");
+        sleep(500);
 
-        offset = 0;
+        offset = gyro.getRotationFraction();
         genOffset();
+
         lastTime = System.currentTimeMillis();
         heading = 0;
+        telemetry.addData("Offset:", offset);
+        telemetry.update();
+
+        waitForStart();
 
         gyroThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
+                while (opModeIsActive()) {
                     integrateGyro();
-                    telemetry.addData("Gyro Heading: ", heading);
-                    telemetry.update();
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
@@ -103,15 +109,16 @@ public class GyroTurning extends LinearOpMode {
 
         gyroThread.start();
 
-        double d_theta = 15;
+        double d_theta = 22.5;
         double calculated = 0;
 
         for(int i = 0; i < (720 / d_theta); i++){
-            turn(0.5, d_theta);
+            turn(0.25, d_theta);
             calculated += d_theta;
             telemetry.addData("Calculated heading: ", calculated);
+            telemetry.addData("Heading :", heading);
             telemetry.update();
-            sleep(1000);
+            sleep(3000);
         }
     }
 }

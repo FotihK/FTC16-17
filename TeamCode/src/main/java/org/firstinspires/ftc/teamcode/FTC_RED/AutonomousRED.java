@@ -9,7 +9,6 @@ import org.firstinspires.ftc.teamcode.FTC_RED.Helper.AutonomousTemp;
  */
 @Autonomous(name = "Red", group = "RED")
 public class AutonomousRED extends AutonomousTemp {
-
     @Override
     public void runOpMode() throws InterruptedException {
         alliance = 1;

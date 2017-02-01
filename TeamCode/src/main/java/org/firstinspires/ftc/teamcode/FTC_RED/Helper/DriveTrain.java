@@ -45,6 +45,11 @@ public class DriveTrain {
         }
     }
 
+    public void setMaxSpeed(int cps){
+        left.setMaxSpeed(cps);
+        right.setMaxSpeed(cps);
+    }
+
     /**
      * Sets the mode of either (or both) motor(s).
      *
