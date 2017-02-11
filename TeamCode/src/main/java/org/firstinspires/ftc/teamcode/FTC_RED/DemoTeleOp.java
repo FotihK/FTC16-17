@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.FTC_RED.Helper.TeleOpTemp;
 /**
  * Created by HP on 11/30/2016.
  */
-@TeleOp(name = "DemoOp", group = "RED")
+//@TeleOp(name = "DemoOp", group = "RED")
 public class DemoTeleOp extends TeleOpTemp {
 
     @Override

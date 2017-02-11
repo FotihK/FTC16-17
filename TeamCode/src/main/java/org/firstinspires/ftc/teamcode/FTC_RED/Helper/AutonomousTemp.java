@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.FTC_RED.Helper;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.UltrasonicSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -15,23 +17,47 @@ import java.util.ArrayList;
  * Created by HP on 12/30/2016.
  */
 
+@SuppressWarnings("FieldCanBeLocal")
 public class AutonomousTemp extends LinearOpMode {
     private DcMotor intake, belt;
     private DriveTrain driveTrain, flywheel;
     private Servo pushL, pushR;
-    private LightSensor light_beacon, light_ground;
-    private double flyPower = 0, offset, heading;
-    private final double[] servoStartPositions = {0.94, 0.00};    //Left, Right
-    private final double[] servoEndPositions = {0.55, 0.35};      //Left, Right
-    private final double BEACON_THRESHOLD = 1.875;            //Less than for blue, greater than for red
-    private final double LINE_THRESHOLD = 1.8, maxFly = 0.55;
-    protected long shootTime = 1750;
-    protected int alliance = 0;                                     //Red is 1, Blue is -1
+    private LightSensor light_ground;
+    private ColorSensor color;
+    private UltrasonicSensor sonar;
     private ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private GyroSensor gyro;
-    private long lastTime;
-    private Thread gyroThread;
 
+    private double flyPower = 0, offset = 0, heading = 0;
+    private final double[] servoStartPositions = {0.94, 0.00};    //Left, Right
+    private final double[] servoEndPositions = {0.55, 0.35};      //Left, Right
+    private final double maxFly = 0.55, turnPow = 0.37, regularDrive = 0.55, preciseDrive = 0.4;
+    protected int alliance = 0;                                     //Red is 1, Blue is -1
+    private long lastTime = System.currentTimeMillis();
+
+    /**
+     * Allows for the autonomous code to run while the gyro continually integrates
+     */
+    private Thread gyroThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while (opModeIsActive()) {
+                try {
+                    integrateGyro();
+                    telemetry.addData("Heading: ", heading);
+                    telemetry.update();
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    });
+
+    /**
+     * Initialization:
+     * Contains hardware declarations, hardware settings, and variable initialization
+     */
     protected void initialize() {
         driveTrain = new DriveTrain(hardwareMap.dcMotor.get("right"), hardwareMap.dcMotor.get("left")); //Servos are front of bot for auto
         flywheel = new DriveTrain(hardwareMap.dcMotor.get("flywheelL"), hardwareMap.dcMotor.get("flywheelR"));
@@ -39,6 +65,11 @@ public class AutonomousTemp extends LinearOpMode {
         belt = hardwareMap.dcMotor.get("belt");
         pushL = hardwareMap.servo.get("pushL");
         pushR = hardwareMap.servo.get("pushR");
+        color = hardwareMap.colorSensor.get("color");
+        light_ground = hardwareMap.lightSensor.get("light_ground");
+        gyro = hardwareMap.gyroSensor.get("gyro");
+        sonar = hardwareMap.ultrasonicSensor.get("sonar");
+
 
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         belt.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -49,274 +80,229 @@ public class AutonomousTemp extends LinearOpMode {
         driveTrain.setDirection("left", DcMotorSimple.Direction.FORWARD);
         driveTrain.setDirection("right", DcMotorSimple.Direction.REVERSE);
 
+
         flywheel.setMode("both", DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        light_beacon = hardwareMap.lightSensor.get("light_beacon");
-        light_ground = hardwareMap.lightSensor.get("light_ground");
         light_ground.enableLed(true);
-        light_beacon.enableLed(false);
-
+        color.enableLed(false);
         pushL.setPosition(servoStartPositions[0]);
         pushR.setPosition(servoStartPositions[1]);
 
-        gyro = hardwareMap.gyroSensor.get("gyro");
 
-
-
+        lastTime = System.currentTimeMillis();
+        offset = gyro.getRotationFraction();
+        heading = 0;
+        telemetry.setAutoClear(true);
+        telemetry.addData("Offset: ", offset);
+        telemetry.update();
     }
 
+    /**
+     * Gyroscope returns angular velocity, which is the derivative of angle, in thousandths of a degree per second
+     * In order to have an angle for use, this returned value must be integrated
+     * This method multiplies the angular velocity by the change in time to get the angle of movement that occured in that time period
+     * This is then added to the overall angle, stored in the variable "heading"
+     * This method of integration is called the rectangular approximation method (RAM), and the midpoint version is being used in this instance
+     * Slightly inaccurate, as is the case with all forms of numerical integration, however it is good enough for our use
+     *
+     * @see #heading
+     * @see #gyroThread
+     */
     private void integrateGyro() {
         long currTime = System.currentTimeMillis();
-        if (Math.abs((gyro.getRotationFraction() - offset)) * ((currTime - lastTime)) > 0.025) {
+        if (Math.abs((gyro.getRotationFraction() - offset)) * ((currTime - lastTime)) > 0.025)
             heading += ((gyro.getRotationFraction() - offset)) * ((currTime - lastTime));
-        }
         lastTime = currTime;
     }
 
-    private void turn(double power, double angle) {
-        double newHeading = heading + angle;
-            if ((heading + angle) > heading) {
-                driveTrain.turn("right", power);
-                while (heading < newHeading /*&& heading < (newHeading + 10)*/ && opModeIsActive()) {
-                    sleep(1);
-                }
-            } else {
-                driveTrain.turn("left", power);
-                while (heading > newHeading /*&& heading < (newHeading + 10)*/ && opModeIsActive()) {
-                    sleep(1);
-                }
-            }
-
-
-    }
-
-    private void genOffset() {
-        double sum = 0;
-        for (int i = 0; (i < 50) && (opModeIsActive()); i++) {
-            sum += gyro.getRotationFraction();
-            sleep(15);
+    /**
+     * Using gyroscope integration, turns the specified number of degrees at the specified power
+     * Slightly inaccurate due to numerical integration
+     *
+     * @param power   - The power at which to turn
+     * @param degrees - The number of degrees to turn
+     */
+    private void turn(double power, double degrees) {
+        double newHeading = heading + degrees;
+        if ((heading + degrees) > heading) {
+            driveTrain.turn("right", power);
+            while (heading < newHeading && opModeIsActive()) sleep(1);
+        } else {
+            driveTrain.turn("left", power);
+            while (heading > newHeading && opModeIsActive()) sleep(1);
         }
-        offset = sum / 50.0;
+        driveTrain.stop();
     }
 
-    private void rampFlywheelUp() throws InterruptedException {
+    /**
+     * Slowly increases the power of the flywheel by increments of 0.25 at 250ms intervals
+     * This is to lessen the shock of the gear train suddenly starting to the motors
+     */
+    private void rampFlywheelUp() {
         while (flyPower < maxFly && opModeIsActive()) {
             flyPower = Range.clip(flyPower + 0.25, 0, maxFly);
             flywheel.setPower(flyPower);
-            sleep(350);
+            sleep(250);
         }
     }
 
-    private void rampFlywheelDown() throws InterruptedException {
+    /**
+     * Slowly decreases the power of the flywheel at increments of 0.2 at 400ms intervals
+     * This is to lessen the shock of the gear train suddenly stopping to the motors
+     */
+    private void rampFlywheelDown() {
         while (flyPower > 0 && opModeIsActive()) {
-            flyPower = Range.clip(flyPower - 0.15, 0, maxFly);
+            flyPower = Range.clip(flyPower - 0.2, 0, maxFly);
             flywheel.setPower(flyPower);
-            sleep(450);
+            sleep(400);
         }
     }
 
-    private void autoShoot() throws InterruptedException {
+    /**
+     * Method to automatically shoot preloaded balls
+     */
+    private void autoShoot() {
         rampFlywheelUp();
-        sleep(75);
         belt.setPower(1);
-        sleep(shootTime);
+        sleep(2500);
         belt.setPower(0);
         rampFlywheelDown();
     }
 
+    /**
+     * Method to move forward until a line is found
+     */
     private void moveToLine() {
-        driveTrain.setPower(0.45);
-        while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) {
-            sleep(1);
-        }
+        double LINE_THRESHOLD = 1.8;
+
+        driveTrain.setPower(preciseDrive);
+        while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
         sleep(100);
         driveTrain.stop();
     }
 
-    private void forward() {
-        driveTrain.setPower(0.6);
-        sleep(600);
-        driveTrain.stop();
-        sleep(75);
-    }
-
-    private void backward() {
-        driveTrain.setPower(-0.2);
-        sleep(350);
-        driveTrain.stop();
-        sleep(75);
-    }
-
-    private void pressBlue() {
+    /**
+     * Method to poll color sensor while at beacon to ensure correct color is pressed
+     * Pulls color sensor value every 25ms for 300ms and checks whether it is the alliance color, adding this boolean into an ArrayList
+     * Afterwards, checks to see if 75% of the values in the ArrayList are true
+     * If yes, the right (sensor) arm is lowered and the left arm is raised, otherwise, the opposite happens
+     * Then, forward movement to push the correct button
+     */
+    private void pressButton() {
         ArrayList<Boolean> checks = new ArrayList<>();
         timer.reset();
-        while (timer.milliseconds() <= 1001 && opModeIsActive()) {
-            telemetry.addData("Raw: ", light_beacon.getRawLightDetected());
-            telemetry.addData("Val: ", light_beacon.getLightDetected());
-            if ((timer.milliseconds() % 100) >= 0 && (timer.milliseconds() % 100) <= 6) {
-                if (light_beacon.getRawLightDetected() <= BEACON_THRESHOLD) checks.add(true);
+        while (timer.milliseconds() <= 300 && opModeIsActive()) {
+            if ((timer.milliseconds() % 25) >= 0 && (timer.milliseconds() % 25) <= 2) {
+                switch (alliance) {
+                    case 1:
+                        if (color.red() >= 5) checks.add(true);
+                        else checks.add(false);
+                        break;
+                    case -1:
+                        if (color.blue() >= 5) checks.add(true);
+                        else checks.add(false);
+                        break;
+                }
             }
         }
 
         int count = 0;
-
         for (boolean check : checks) {
             if (check) count++;
         }
 
-        if (count >= 7) {
-            backward();
-            forward();
+        if (count >= (checks.size() * 3) / 4) {
+            pushL.setPosition(servoStartPositions[0]);
+            pushR.setPosition(servoEndPositions[1]);
+        } else {
+            pushL.setPosition(servoEndPositions[0]);
+            pushR.setPosition(servoStartPositions[1]);
         }
+
+        driveTrain.setPower(regularDrive);
+        sleep(300);
+        driveTrain.stop();
     }
 
-    private void pressRed() {
-        ArrayList<Boolean> checks = new ArrayList<>();
-        timer.reset();
-        while (timer.milliseconds() <= 1001 && opModeIsActive()) {
-            telemetry.addData("Raw: ", light_beacon.getRawLightDetected());
-            telemetry.addData("Val: ", light_beacon.getLightDetected());
-            if ((timer.milliseconds() % 100) >= 0 && (timer.milliseconds() % 100) <= 6) {
-                if (light_beacon.getRawLightDetected() > BEACON_THRESHOLD) checks.add(true);
-            }
-        }
+    /**
+     * Helper method to previous method
+     * Places robot at a location where the sensor can accurately poll the beacon
+     *
+     * @see #pressButton()
+     */
+    private void pushBeacon() {
+        driveTrain.setPower(preciseDrive);
+        while (color.red() < 5 || color.blue() < 5) sleep(1);
+        pressButton();
+    }
 
-        int count = 0;
-
-        for (boolean check : checks) {
-            if (check) count++;
-        }
-
-        if (count >= 7) {
-
-            backward();
-            forward();
-        }
+    /**
+     * Method to move a specified distance using the NXT Ultrasonic Sensor
+     *
+     * @param dist - The distance to move
+     */
+    private void moveDistance(int dist) {               //TODO: Add second US Sensor
+        driveTrain.setPower(preciseDrive);
+        int curr = (int) sonar.getUltrasonicLevel();
+        while ((int) sonar.getUltrasonicLevel() <= curr + dist && opModeIsActive()) sleep(1);
+        driveTrain.stop();
     }
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initialize();                                   //initializes, waits for start
-
-        offset = gyro.getRotationFraction();
-        //genOffset();
-        lastTime = System.currentTimeMillis();
-        heading = 0;
-        telemetry.addData("Offset: ", offset);
-        telemetry.update();
-
+        initialize();                                               //Initializes, waits for start
         waitForStart();
-        //heading = alliance == 1 ? 180 : 180 ;
-
-        gyroThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (opModeIsActive()) {
-                    integrateGyro();
-                    try {
-                        telemetry.addData("Heading: ", heading);
-                        telemetry.update();
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-        });
-
-
         gyroThread.start();
-        pushL.setPosition(servoEndPositions[0]);        //puts servos down
+
+        ///////////////START///////////////////////////////////////////
+        moveDistance(26);                                           //Moves (26) cm forward
+        turn(turnPow, -46 * alliance);                              //Turns towards beacon line
+
+        moveToLine();                                               //Moves to first beacon line
+
+        pushL.setPosition(servoEndPositions[0]);                    //Puts servos down
         pushR.setPosition(servoEndPositions[1]);
-        double turnPow = 0.37;
-        /*
-        driveTrain.setPower(0.5);
-        sleep(150);
+
+        turn(turnPow, -45 * alliance);                              //Turns towards first beacon
+
+        pushBeacon();                                               //Reads beacon and pushes appropriate button
+
+        driveTrain.setPower(-regularDrive);                         //Backs away from the beacon to get ready to shoot preloads
+        sleep(800);                                                 //TODO: Replace with Ultrasonic Sensor on back
         driveTrain.stop();
-        turn(turnPow, -40 * alliance);
+
+        autoShoot();                                                //Automatically shoots
+
+        driveTrain.setPower(regularDrive);                          //Moves back towards beacon
+        sleep(550);                                                 //TODO: Replace with Ultrasonic Sensor
         driveTrain.stop();
 
-        sleep(75);
-        */
-        moveToLine();                                   //Waits 5 seconds, moves to first beacon line
-        sleep(500);
+        turn(turnPow, 85 * alliance);                               //Turns towards next beacon line
 
-        driveTrain.turn("left", 0.5 * alliance);                   //Turns towards beacon
-        while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) idle();
-        //turn(turnPow, 2 * alliance);
+        moveToLine();                                               //Moves to next beacon line
+
+        turn(turnPow, -90 * alliance);                              //Turns towards beacon
+
+        pushBeacon();                                               //Reads beacon and pushes appropriate button
+
+        driveTrain.setPower(-regularDrive);                         //Backs away from the beacon to turn towards ramp
+        sleep(800);                                                 //TODO: Replace with Ultrasonic Sensor
         driveTrain.stop();
-        sleep(75);
 
-        driveTrain.setPower(0.6);                       //Ram into beacon to activate
-        sleep(600);                //TODO minimize
-        driveTrain.stop();
-        sleep(75);
+        turn(turnPow, -90 * alliance);                              //Turns towards ramp
 
-        //backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
-        sleep(3000);
-        if (alliance == 1) pressBlue();
-        else pressRed();
-
-        driveTrain.setPower(-0.5);                      //Backs away from the beacon to get ready to shoot preloads
-        sleep(800);                //TODO find timing for optimal distance
-        driveTrain.stop();
-        sleep(75);
-
-        autoShoot();                                    //Automatically shoots
-        sleep(75);
-
-        driveTrain.setPower(0.5);
-        sleep(550);
-        driveTrain.stop();
-        sleep(75);
-
-        turn(turnPow, 85 * alliance);
-        driveTrain.stop();
-        sleep(75);
-
-        moveToLine();                                   //Moves to next beacon line
-        sleep(75);
-
-        turn(turnPow, -90 * alliance);
-        driveTrain.stop();
-        sleep(75);
-
-        driveTrain.setPower(0.6);                       //Ram into beacon to activate
-        sleep(500);                //TODO minimize
-        driveTrain.stop();
-        sleep(75);
-
-        //backward();                                     //Prepares for reading, and then goes ahead and does it if necessary
-        sleep(3000);
-        if (alliance == 1) pressBlue();
-        else pressRed();
-
-        driveTrain.setPower(-0.5);                      //Backs away from the beacon to turn towards ramp
-        sleep(800);                //TODO find timing for optimal distance
-        driveTrain.stop();
-        sleep(75);
-
-        turn(turnPow, -90 * alliance);
-        driveTrain.stop();
-        sleep(75);
-
-        pushL.setPosition(servoStartPositions[0]);        //puts servos up
+        pushL.setPosition(servoStartPositions[0]);                  //Puts servos up
         pushR.setPosition(servoStartPositions[1]);
 
-        driveTrain.setPower(0.5);                      //Moves towards front of ramp
-        sleep(2500);                //TODO find timing for optimal distance
+        driveTrain.setPower(regularDrive);                          //Moves towards front of ramp
+        sleep(2500);                                                //TODO: Find timing for optimal distance, possibly US sensor
         driveTrain.stop();
-        sleep(75);
 
-        turn(turnPow, 45 * alliance);
-        driveTrain.stop();
-        sleep(75);
+        turn(turnPow, 45 * alliance);                               //Turn towards ramp
 
-        driveTrain.setPower(0.7);       //Climb up onto ramp and keep climbing
+        driveTrain.setPower(0.7);                                   //Climb up onto ramp and continue climbing
         while (opModeIsActive()) {
             sleep(1);
         }
-
     }
 }
 

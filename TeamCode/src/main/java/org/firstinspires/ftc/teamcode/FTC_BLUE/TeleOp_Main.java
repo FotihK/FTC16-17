@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.util.Range;
  * Created by HP on 9/29/2016.
  */
 
-@TeleOp(name = "PrafulBot", group = "BLUE")
+//@TeleOp(name = "PrafulBot", group = "BLUE")
 public class TeleOp_Main extends OpMode {
     private DcMotor fL, fR, bL, bR;
     private DcMotor intake, elevator, flywheel;

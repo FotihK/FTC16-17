@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Created by HP on 9/29/2016.
  */
 
-@TeleOp(name="GyroTest",group = "Tests")
+//@TeleOp(name="GyroTest",group = "Tests")
 public class GyroTest extends OpMode {
     private GyroSensor gyro;
     private boolean[] toggle = new boolean[2];

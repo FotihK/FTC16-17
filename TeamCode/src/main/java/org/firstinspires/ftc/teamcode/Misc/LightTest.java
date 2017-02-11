@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.LightSensor;
  * Created by HP on 9/29/2016.
  */
 
-@TeleOp(name="LightTest",group = "Tests")
+//@TeleOp(name="LightTest",group = "Tests")
 public class LightTest extends OpMode {
     private LightSensor light;
     @Override

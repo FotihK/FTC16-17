@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.ThreadPool;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.FTC_RED.Helper.DriveTrain;
 
-@Autonomous(name="Gyro Turn Test", group = "Tests")
+//@Autonomous(name="Gyro Turn Test", group = "Tests")
 public class GyroTurning extends LinearOpMode {
 
     private DriveTrain driveTrain;

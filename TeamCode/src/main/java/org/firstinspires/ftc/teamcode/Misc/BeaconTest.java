@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.LightSensor;
  * Created by HP on 9/29/2016.
  */
 
-@TeleOp(name="BeaconTest",group = "Tests")
+//@TeleOp(name="BeaconTest",group = "Tests")
 public class BeaconTest extends OpMode {
     private LightSensor light;
     private boolean led, toggle;

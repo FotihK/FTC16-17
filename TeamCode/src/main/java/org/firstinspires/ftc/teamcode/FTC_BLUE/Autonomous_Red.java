@@ -15,7 +15,7 @@ import java.util.ArrayList;
 /**
  * Created by Siva on 11/9/2016.
  */
-@Autonomous(name = "RedSide-PrafulBot", group = "BLUE")
+//@Autonomous(name = "RedSide-PrafulBot", group = "BLUE")
 public class Autonomous_Red extends LinearOpMode {
     protected DriveTrain driveTrain;
     private DcMotor elevator, flywheel;

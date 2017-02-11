@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 /**
  * Created by HP on 12/30/2016.
  */
-@TeleOp(name = "ZiyanOp", group = "Green")
+//@TeleOp(name = "ZiyanOp", group = "Green")
 public class xDriveOp extends OpMode {
 
     private DcMotor one, two, three, four;
