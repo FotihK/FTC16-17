@@ -31,7 +31,7 @@ public class AutonomousTemp extends LinearOpMode {
     private double flyPower = 0, offset = 0, heading = 0;
     private final double[] servoStartPositions = {0.94, 0.00};    //Left, Right
     private final double[] servoEndPositions = {0.55, 0.35};      //Left, Right
-    private final double maxFly = 0.55, turnPow = 0.37, regularDrive = 0.55, preciseDrive = 0.4;
+    private final double maxFly = 0.55, turnPow = 0.40, regularDrive = 0.55, preciseDrive = 0.38, LINE_THRESHOLD = 1.8;;
     protected int alliance = 0;                                     //Red is 1, Blue is -1
     private long lastTime = System.currentTimeMillis();
 
@@ -44,9 +44,9 @@ public class AutonomousTemp extends LinearOpMode {
             while (opModeIsActive()) {
                 try {
                     integrateGyro();
-                    telemetry.addData("Heading: ", heading);
-                    telemetry.update();
-                    Thread.sleep(5);
+                    //telemetry.addData("Heading: ", heading);
+                    //telemetry.update();
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -109,7 +109,7 @@ public class AutonomousTemp extends LinearOpMode {
      */
     private void integrateGyro() {
         long currTime = System.currentTimeMillis();
-        if (Math.abs((gyro.getRotationFraction() - offset)) * ((currTime - lastTime)) > 0.025)
+        if (Math.abs((gyro.getRotationFraction() - offset)) * ((currTime - lastTime)) > 0.015)
             heading += ((gyro.getRotationFraction() - offset)) * ((currTime - lastTime));
         lastTime = currTime;
     }
@@ -163,7 +163,7 @@ public class AutonomousTemp extends LinearOpMode {
     private void autoShoot() {
         rampFlywheelUp();
         belt.setPower(1);
-        sleep(2500);
+        sleep(3000);
         belt.setPower(0);
         rampFlywheelDown();
     }
@@ -172,8 +172,6 @@ public class AutonomousTemp extends LinearOpMode {
      * Method to move forward until a line is found
      */
     private void moveToLine() {
-        double LINE_THRESHOLD = 1.8;
-
         driveTrain.setPower(preciseDrive);
         while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
         sleep(100);
@@ -188,6 +186,8 @@ public class AutonomousTemp extends LinearOpMode {
      * Then, forward movement to push the correct button
      */
     private void pressButton() {
+        telemetry.addLine("Pushing button");
+        telemetry.update();
         ArrayList<Boolean> checks = new ArrayList<>();
         timer.reset();
         while (timer.milliseconds() <= 300 && opModeIsActive()) {
@@ -218,7 +218,12 @@ public class AutonomousTemp extends LinearOpMode {
             pushR.setPosition(servoStartPositions[1]);
         }
 
+        sleep(500);
+
         driveTrain.setPower(regularDrive);
+        telemetry.clear();
+        telemetry.addLine("Done");
+        telemetry.update();
         sleep(300);
         driveTrain.stop();
     }
@@ -230,8 +235,13 @@ public class AutonomousTemp extends LinearOpMode {
      * @see #pressButton()
      */
     private void pushBeacon() {
-        driveTrain.setPower(preciseDrive);
-        while (color.red() < 5 || color.blue() < 5) sleep(1);
+        driveTrain.setPower(preciseDrive-0.05);
+        telemetry.addLine("Pushing beacon");
+        telemetry.update();
+        while ((color.red() < 5 && color.blue() < 5) && opModeIsActive()) sleep(1);
+        driveTrain.stop();
+        sleep(5000);
+        telemetry.clear();
         pressButton();
     }
 
@@ -254,26 +264,26 @@ public class AutonomousTemp extends LinearOpMode {
         gyroThread.start();
 
         ///////////////START///////////////////////////////////////////
-        moveDistance(26);                                           //Moves (26) cm forward
-        turn(turnPow, -46 * alliance);                              //Turns towards beacon line
+        moveDistance(44);                                           //Moves (26) cm forward       ---move start
+        turn(turnPow, 174);
+        autoShoot();
+        //sleep(5000);
+        turn(turnPow, -174 * alliance);
+        turn(turnPow, -62 * alliance);                              //Turns towards beacon line      -----turn
 
         moveToLine();                                               //Moves to first beacon line
 
         pushL.setPosition(servoEndPositions[0]);                    //Puts servos down
         pushR.setPosition(servoEndPositions[1]);
 
-        turn(turnPow, -45 * alliance);                              //Turns towards first beacon
-
-        pushBeacon();                                               //Reads beacon and pushes appropriate button
-
-        driveTrain.setPower(-regularDrive);                         //Backs away from the beacon to get ready to shoot preloads
-        sleep(800);                                                 //TODO: Replace with Ultrasonic Sensor on back
+        //turn(turnPow, -45 * alliance);                              //Turns towards first beacon
+        driveTrain.turn("l", -turnPow * alliance);
+        while(light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
         driveTrain.stop();
 
-        autoShoot();                                                //Automatically shoots
-
-        driveTrain.setPower(regularDrive);                          //Moves back towards beacon
-        sleep(550);                                                 //TODO: Replace with Ultrasonic Sensor
+        pushBeacon();                                               //Reads beacon and pushes appropriate button
+        driveTrain.setPower(-0.5);
+        sleep(150);
         driveTrain.stop();
 
         turn(turnPow, 85 * alliance);                               //Turns towards next beacon line
@@ -299,7 +309,7 @@ public class AutonomousTemp extends LinearOpMode {
 
         turn(turnPow, 45 * alliance);                               //Turn towards ramp
 
-        driveTrain.setPower(0.7);                                   //Climb up onto ramp and continue climbing
+        driveTrain.setPower(0.5);                                   //Climb up onto ramp and continue climbing
         while (opModeIsActive()) {
             sleep(1);
         }
