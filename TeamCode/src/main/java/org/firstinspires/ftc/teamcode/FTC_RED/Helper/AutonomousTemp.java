@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Created by HP on 12/30/2016.
@@ -28,28 +29,26 @@ public class AutonomousTemp extends LinearOpMode {
     private ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private GyroSensor gyro;
 
-    private double flyPower = 0, offset = 0, heading = 0;
+    private double flyPower = 0, offset = 0, heading = 0, distance = 0;
     private final double[] servoStartPositions = {0.94, 0.00};    //Left, Right
     private final double[] servoEndPositions = {0.55, 0.35};      //Left, Right
-    private final double maxFly = 0.55, turnPow = 0.40, regularDrive = 0.55, preciseDrive = 0.38, LINE_THRESHOLD = 1.8;;
+    private final double maxFly = 0.5, turnPow = 0.42, regularDrive = 0.6, preciseDrive = 0.39, LINE_THRESHOLD = 1.8;
+    ;
     protected int alliance = 0;                                     //Red is 1, Blue is -1
     private long lastTime = System.currentTimeMillis();
 
     /**
      * Allows for the autonomous code to run while the gyro continually integrates
      */
-    private Thread gyroThread = new Thread(new Runnable() {
+    private Thread backThread = new Thread(new Runnable() {
         @Override
         public void run() {
             while (opModeIsActive()) {
-                try {
-                    integrateGyro();
-                    //telemetry.addData("Heading: ", heading);
-                    //telemetry.update();
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+                integrateGyro();
+                if (Math.abs(distance - sonar.getUltrasonicLevel()) < 9 || Math.abs(distance - sonar.getUltrasonicLevel()) > 70)
+                    distance = sonar.getUltrasonicLevel();
+                telemetry.addData("Dist:", distance);
+                telemetry.update();
             }
         }
     });
@@ -91,8 +90,10 @@ public class AutonomousTemp extends LinearOpMode {
         lastTime = System.currentTimeMillis();
         offset = gyro.getRotationFraction();
         heading = 0;
+        distance = 2;
         telemetry.setAutoClear(true);
         telemetry.addData("Offset: ", offset);
+        telemetry.addData("Dist: ", distance);
         telemetry.update();
     }
 
@@ -105,7 +106,7 @@ public class AutonomousTemp extends LinearOpMode {
      * Slightly inaccurate, as is the case with all forms of numerical integration, however it is good enough for our use
      *
      * @see #heading
-     * @see #gyroThread
+     * @see #backThread
      */
     private void integrateGyro() {
         long currTime = System.currentTimeMillis();
@@ -163,7 +164,7 @@ public class AutonomousTemp extends LinearOpMode {
     private void autoShoot() {
         rampFlywheelUp();
         belt.setPower(1);
-        sleep(3000);
+        sleep(2750);
         belt.setPower(0);
         rampFlywheelDown();
     }
@@ -172,7 +173,7 @@ public class AutonomousTemp extends LinearOpMode {
      * Method to move forward until a line is found
      */
     private void moveToLine() {
-        driveTrain.setPower(preciseDrive);
+        driveTrain.setPower(preciseDrive - 0.05);
         while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
         sleep(100);
         driveTrain.stop();
@@ -194,7 +195,7 @@ public class AutonomousTemp extends LinearOpMode {
             if ((timer.milliseconds() % 25) >= 0 && (timer.milliseconds() % 25) <= 2) {
                 switch (alliance) {
                     case 1:
-                        if (color.red() >= 5) checks.add(true);
+                        if (color.red() >= 4) checks.add(true);
                         else checks.add(false);
                         break;
                     case -1:
@@ -221,7 +222,6 @@ public class AutonomousTemp extends LinearOpMode {
         sleep(500);
 
         driveTrain.setPower(regularDrive);
-        telemetry.clear();
         telemetry.addLine("Done");
         telemetry.update();
         sleep(300);
@@ -235,25 +235,27 @@ public class AutonomousTemp extends LinearOpMode {
      * @see #pressButton()
      */
     private void pushBeacon() {
-        driveTrain.setPower(preciseDrive-0.05);
+        driveTrain.setPower(preciseDrive - 0.05);
         telemetry.addLine("Pushing beacon");
         telemetry.update();
-        while ((color.red() < 5 && color.blue() < 5) && opModeIsActive()) sleep(1);
+        while ((color.red() < 4 && color.blue() < 5) && opModeIsActive()) sleep(1);
         driveTrain.stop();
-        sleep(5000);
-        telemetry.clear();
         pressButton();
     }
 
     /**
      * Method to move a specified distance using the NXT Ultrasonic Sensor
      *
+     * @param dir  - Direction: forward, backward
      * @param dist - The distance to move
      */
-    private void moveDistance(int dist) {               //TODO: Add second US Sensor
-        driveTrain.setPower(preciseDrive);
-        int curr = (int) sonar.getUltrasonicLevel();
-        while ((int) sonar.getUltrasonicLevel() <= curr + dist && opModeIsActive()) sleep(1);
+    private void moveDistance(String dir, double dist) {               //TODO: Add second US Sensor
+        if (Objects.equals(dir, "forward")) driveTrain.setPower(preciseDrive);
+        else driveTrain.setPower(-preciseDrive);
+        double curr = distance;
+        if (Objects.equals(dir, "forward"))
+            while (distance <= curr + dist && opModeIsActive()) sleep(1);
+        else while (distance >= curr - dist && opModeIsActive()) sleep(1);
         driveTrain.stop();
     }
 
@@ -261,15 +263,24 @@ public class AutonomousTemp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         initialize();                                               //Initializes, waits for start
         waitForStart();
-        gyroThread.start();
+        backThread.start();
 
         ///////////////START///////////////////////////////////////////
-        moveDistance(44);                                           //Moves (26) cm forward       ---move start
-        turn(turnPow, 174);
-        autoShoot();
-        //sleep(5000);
-        turn(turnPow, -174 * alliance);
-        turn(turnPow, -62 * alliance);                              //Turns towards beacon line      -----turn
+        //moveDistance("forward", 32);                                           //Moves (26) cm forward       ---move start
+        driveTrain.setPower(preciseDrive);
+        int t = 1500;
+        sleep(t);
+        turn(turnPow, 174.5);
+        //autoShoot();
+        sleep(1000);
+        turn(turnPow, -174.5 * alliance);
+        sleep(250);
+        driveTrain.setPower(-preciseDrive);
+        sleep(t/2);
+        driveTrain.stop();
+        //moveDistance("backward", 15);
+
+        turn(turnPow, -47 * alliance);                              //Turns towards beacon line      -----turn
 
         moveToLine();                                               //Moves to first beacon line
 
@@ -278,7 +289,8 @@ public class AutonomousTemp extends LinearOpMode {
 
         //turn(turnPow, -45 * alliance);                              //Turns towards first beacon
         driveTrain.turn("l", -turnPow * alliance);
-        while(light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
+        while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
+        //while ((color.red() < 4 && color.blue() < 5) && opModeIsActive()) sleep(1);
         driveTrain.stop();
 
         pushBeacon();                                               //Reads beacon and pushes appropriate button
@@ -289,6 +301,13 @@ public class AutonomousTemp extends LinearOpMode {
         turn(turnPow, 85 * alliance);                               //Turns towards next beacon line
 
         moveToLine();                                               //Moves to next beacon line
+
+//        driveTrain.setPower(-(preciseDrive - 0.05));
+//        sleep(50);
+//        driveTrain.stop();
+
+        pushL.setPosition(servoEndPositions[0]);                    //Puts servos down
+        pushR.setPosition(servoEndPositions[1]);
 
         turn(turnPow, -90 * alliance);                              //Turns towards beacon
 
