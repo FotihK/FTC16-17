@@ -34,8 +34,7 @@ public class AutonomousTemp extends LinearOpMode {
     private double flyPower = 0, offset = 0, heading = 0, distance = 0;
     private final double[] servoStartPositions = {0.94, 0.00};    //Left, Right
     private final double[] servoEndPositions = {0.55, 0.35};      //Left, Right
-    private final double maxFly = 0.5, turnPow = 0.42, regularDrive = 0.6, preciseDrive = 0.39, LINE_THRESHOLD = 1.8;
-    ;
+    private final double maxFly = 0.38, turnPow = 0.42, regularDrive = 0.6, preciseDrive = 0.42, LINE_THRESHOLD = 1.8;
     protected int alliance = 0;                                     //Red is 1, Blue is -1
     private long lastTime = System.currentTimeMillis();
 
@@ -92,7 +91,7 @@ public class AutonomousTemp extends LinearOpMode {
         lastTime = System.currentTimeMillis();
         offset = gyro.getRotationFraction();
         heading = 0;
-        distance = 2;
+        distance = sonar.getUltrasonicLevel();
         telemetry.setAutoClear(true);
         telemetry.addData("Offset: ", offset);
         telemetry.addData("Dist: ", distance);
@@ -142,7 +141,7 @@ public class AutonomousTemp extends LinearOpMode {
      */
     private void rampFlywheelUp() {
         while (flyPower < maxFly && opModeIsActive()) {
-            flyPower = Range.clip(flyPower + 0.25, 0, maxFly);
+            flyPower = Range.clip(flyPower + (maxFly / 2.0), 0, maxFly);
             flywheel.setPower(flyPower);
             sleep(250);
         }
@@ -154,7 +153,7 @@ public class AutonomousTemp extends LinearOpMode {
      */
     private void rampFlywheelDown() {
         while (flyPower > 0 && opModeIsActive()) {
-            flyPower = Range.clip(flyPower - 0.2, 0, maxFly);
+            flyPower = Range.clip(flyPower - (maxFly / 3.0), 0, maxFly);
             flywheel.setPower(flyPower);
             sleep(400);
         }
@@ -197,7 +196,7 @@ public class AutonomousTemp extends LinearOpMode {
             if ((timer.milliseconds() % 25) >= 0 && (timer.milliseconds() % 25) <= 2) {
                 switch (alliance) {
                     case 1:
-                        if (color.red() >= 4) checks.add(true);
+                        if (color.red() >= 3) checks.add(true);
                         else checks.add(false);
                         break;
                     case -1:
@@ -221,7 +220,7 @@ public class AutonomousTemp extends LinearOpMode {
             pushR.setPosition(servoStartPositions[1]);
         }
 
-        sleep(500);
+        sleep(1000);
 
         driveTrain.setPower(regularDrive);
         telemetry.addLine("Done");
@@ -237,10 +236,10 @@ public class AutonomousTemp extends LinearOpMode {
      * @see #pressButton()
      */
     private void pushBeacon() {
-        driveTrain.setPower(preciseDrive - 0.05);
+        driveTrain.setPower(preciseDrive - 0.2);
         telemetry.addLine("Pushing beacon");
         telemetry.update();
-        while ((color.red() < 4 && color.blue() < 5) && opModeIsActive()) sleep(1);
+        while ((color.red() < 3 && color.blue() < 5) && opModeIsActive()) sleep(1);
         driveTrain.stop();
         pressButton();
     }
@@ -252,8 +251,8 @@ public class AutonomousTemp extends LinearOpMode {
      * @param dist - The distance to move
      */
     private void moveDistance(String dir, double dist) {               //TODO: Add second US Sensor
-        if (Objects.equals(dir, "forward")) driveTrain.setPower(preciseDrive);
-        else driveTrain.setPower(-preciseDrive);
+        if (Objects.equals(dir, "forward")) driveTrain.setPower(preciseDrive - 0.05);
+        else driveTrain.setPower(-preciseDrive + 0.05);
         double curr = distance;
         if (Objects.equals(dir, "forward"))
             while (distance <= curr + dist && opModeIsActive()) sleep(1);
@@ -268,21 +267,15 @@ public class AutonomousTemp extends LinearOpMode {
         backThread.start();
 
         ///////////////START///////////////////////////////////////////
-        //moveDistance("forward", 32);                                           //Moves (26) cm forward       ---move start
-        driveTrain.setPower(preciseDrive);
-        int t = 1500;
-        sleep(t);
-        turn(turnPow, 174.5);
-        //autoShoot();
-        sleep(1000);
-        turn(turnPow, -174.5 * alliance);
+        moveDistance("forward", 25);                                           //Moves (26) cm forward       ---move start
+        turn(turnPow, 168);
+        autoShoot();
+//        sleep(1000);
+        turn(turnPow, -168.5 * alliance);
         sleep(250);
-        driveTrain.setPower(-preciseDrive);
-        sleep(t/2);
-        driveTrain.stop();
-        //moveDistance("backward", 15);
+        moveDistance("backward", 7);
 
-        turn(turnPow, -47 * alliance);                              //Turns towards beacon line      -----turn
+        turn(turnPow, -40.5 * alliance);                              //Turns towards beacon line      -----turn
 
         moveToLine();                                               //Moves to first beacon line
 
@@ -292,15 +285,14 @@ public class AutonomousTemp extends LinearOpMode {
         //turn(turnPow, -45 * alliance);                              //Turns towards first beacon
         driveTrain.turn("l", -turnPow * alliance);
         while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
-        //while ((color.red() < 4 && color.blue() < 5) && opModeIsActive()) sleep(1);
         driveTrain.stop();
 
         pushBeacon();                                               //Reads beacon and pushes appropriate button
         driveTrain.setPower(-0.5);
-        sleep(150);
+        sleep(200);
         driveTrain.stop();
 
-        turn(turnPow, 85 * alliance);                               //Turns towards next beacon line
+        turn(turnPow, 80 * alliance);                               //Turns towards next beacon line
 
         moveToLine();                                               //Moves to next beacon line
 
@@ -311,7 +303,12 @@ public class AutonomousTemp extends LinearOpMode {
         pushL.setPosition(servoEndPositions[0]);                    //Puts servos down
         pushR.setPosition(servoEndPositions[1]);
 
-        turn(turnPow, -90 * alliance);                              //Turns towards beacon
+//        turn(turnPow, -85 * alliance);                              //Turns towards beacon
+        driveTrain.turn("l", -turnPow * alliance);
+        while (light_ground.getRawLightDetected() < LINE_THRESHOLD && opModeIsActive()) sleep(1);
+        //sleep(25);
+        turn(turnPow, 0.5);
+        driveTrain.stop();
 
         pushBeacon();                                               //Reads beacon and pushes appropriate button
 

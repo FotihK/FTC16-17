@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.FTC_RED.Helper.DriveTrain;
 
-@Autonomous(name="Straight")
-public class AutonomousSTRAIGHT extends LinearOpMode {
+@Autonomous(name="Straight2")
+public class AutonomousSTRAIGHT2 extends LinearOpMode {
     private DcMotor intake, belt;
     private DriveTrain driveTrain, flywheel;
     private Servo pushL, pushR;
@@ -139,18 +139,13 @@ public class AutonomousSTRAIGHT extends LinearOpMode {
         waitForStart();
         backThread.start();
 
-        //sleep(10000);
-        driveTrain.setPower(-0.9);
-        sleep(3000);
+        sleep(10000);
+        driveTrain.setPower(0.6);
+        sleep(9715);
         driveTrain.stop();
-        sleep(2000);
-        driveTrain.setPower(regularDrive);
-        sleep(1250);
-        driveTrain.stop();
-        turn(turnPow, 10);
         autoShoot();
-        driveTrain.setPower(-regularDrive);
-        sleep(1200);
+        driveTrain.setPower(regularDrive);
+        sleep(1500);
         driveTrain.stop();
     }
 }

@@ -22,7 +22,7 @@ public abstract class TeleOpTemp extends OpMode {
     private double[] servoStartPositions = {0.94, 0.01};    //Left, Right
     private double[] servoEndPositions = {0.55, 0.35};      //Left, Right
     protected double flyPower = 0;
-    private final double maxFly = 0.55;
+    private final double maxFly = 0.4;
     private ElapsedTime rampTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     @Override
@@ -53,7 +53,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelUp() {
         if (flyPower < maxFly && rampTimer.time() > 350) {
-            flyPower = Range.clip(flyPower + 0.3, 0, maxFly);
+            flyPower = Range.clip(flyPower + (maxFly / 2.0), 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower >= maxFly) {
@@ -65,7 +65,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDown() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower = Range.clip(flyPower - 0.2, 0, maxFly);
+            flyPower = Range.clip(flyPower - (maxFly / 2.5), 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {
@@ -77,7 +77,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelUpSlow() {
         if (flyPower < maxFly && rampTimer.time() > 350) {
-            flyPower = Range.clip(flyPower + 0.15, 0, maxFly);
+            flyPower = Range.clip(flyPower + (maxFly / 4.0), 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower >= maxFly) {
@@ -89,7 +89,7 @@ public abstract class TeleOpTemp extends OpMode {
 
     private void rampFlywheelDownSlow() {
         if (flyPower > 0 && rampTimer.time() > 450) {
-            flyPower = Range.clip(flyPower - 0.12, 0, maxFly);
+            flyPower = Range.clip(flyPower - (maxFly / 4.5), 0, maxFly);
             flywheel.setPower(flyPower);
             rampTimer.reset();
         } else if (flyPower <= 0) {
